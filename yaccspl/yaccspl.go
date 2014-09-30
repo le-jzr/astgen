@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"io/ioutil"
-	"github.com/zarevucky/astgen"
+	astgen ".."
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 		panic(err)
 	}
 
-	file, err = ioutil.ReadAll(f)
+	file, err := ioutil.ReadAll(f)
 	if err != nil {
 		panic(err)
 	}
@@ -26,31 +26,31 @@ func main() {
 	}
 
 	for _, t := range langdef.Types {
-		emit_yacc(t)
+		emit_yacc(langdef, t)
 	}
 }
 
 
-func emit_yacc(t Type) {
+func emit_yacc(ld *astgen.LangDef, t astgen.Type) {
 	switch tt := t.(type) {
-	case *LexicalType:
+	case *astgen.LexicalType:
 	
-	case *OptionType:
-		emit_yacc_option(tt)
-	case *EnumType:
-		emit_yacc_enum(tt)
-	case *StructType:
-		emit_yacc_struct(tt)
+	case *astgen.OptionType:
+		emit_yacc_option(ld, tt)
+	case *astgen.EnumType:
+		emit_yacc_enum(ld, tt)
+	case *astgen.StructType:
+		emit_yacc_struct(ld, tt)
 	}
 }
 
-func emit_yacc_option(t *OptionType) {
-	fmt.Print(t.name)
+func emit_yacc_option(ld *astgen.LangDef, t *astgen.OptionType) {
+	fmt.Print(t.Name)
 	fmt.Print(":\n")
 
 	first := true
 
-	for i := range t.options {
+	for i := range t.Options {
 		if first {
 			fmt.Print("  ")
 			first = false
@@ -58,24 +58,22 @@ func emit_yacc_option(t *OptionType) {
 			fmt.Print("| ")
 		}
 
-		check_type(t.options[i])
-
-		fmt.Print(t.options[i])
+		fmt.Print(t.Options[i])
 		fmt.Print(" ")
 
-		_, opt := types[t.options[i]].(*OptionType)
+		_, opt := ld.Types[t.Options[i]].(*astgen.OptionType)
 
 		if opt {
 			fmt.Print("{ $$ = $1; }\n")
 		} else {
-			fmt.Print("{ $$ = SExpression(\"", t.options[i], "\", $1, NULL); }\n")
+			fmt.Print("{ $$ = SExpression(\"", t.Options[i], "\", $1, NULL); }\n")
 		}
 	}
 	fmt.Print(";\n\n\n")
 }
 
-func emit_yacc_enum(t *EnumType) {
-	fmt.Print(t.name)
+func emit_yacc_enum(ld *astgen.LangDef, t *astgen.EnumType) {
+	fmt.Print(t.Name)
 	fmt.Print(":\n")
 	
 	first := true
@@ -92,11 +90,11 @@ func emit_yacc_enum(t *EnumType) {
 	fmt.Print(";\n\n\n")
 }
 
-func emit_yacc_struct(t *StructType) {
+func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 	fmt.Print(t.name, ":\n")
 	first := true
 
-	for i := range t.productions {
+	for i := range t.Productions {
 		if first {
 			fmt.Print("  ")
 			first = false
@@ -104,7 +102,7 @@ func emit_yacc_struct(t *StructType) {
 			fmt.Print("| ")
 		}
 
-		p := &t.productions[i]
+		p := &t.Productions[i]
 		for j := range p.tokens {
 			if p.tokens[j].token != "" {
 				fmt.Print(token_symbol(p.tokens[j].token), " ")

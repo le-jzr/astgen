@@ -1,5 +1,10 @@
+package astgen
 
-type parser = struct {
+import (
+	"strconv"
+)
+
+type parser struct {
 	file []byte
 }
 
@@ -47,8 +52,8 @@ func (p *parser) accept_token(token string) bool {
 }
 
 func (p *parser) match_token(token string) {
-	if !accept_token(token) {
-		panic("can't match token \"" + token + "\". Current: \"" + current_token() + "\"")
+	if !p.accept_token(token) {
+		panic("can't match token \"" + token + "\". Current: \"" + p.current_token() + "\"")
 	}
 }
 
@@ -166,16 +171,16 @@ func (p *parser) parse_production() Production {
 }
 
 func (p *parser) parse_member() (m StructMember) {
-	for accept_token("//") {
-		if accept_token("terminator") {
-			p := parse_production()
-			m.array_terminator = &p
-		} else if accept_token("separator") {
-			p := parse_production()
-			m.array_separator = &p
-		} else if accept_token("min_length") {
+	for p.accept_token("//") {
+		if p.accept_token("terminator") {
+			pr := p.parse_production()
+			m.ArrayTerminator = &pr
+		} else if p.accept_token("separator") {
+			pr := p.parse_production()
+			m.ArraySeparator = &pr
+		} else if p.accept_token("min_length") {
 			var err error
-			m.array_min_length, err = strconv.Atoi(string(consume_line()))
+			m.ArrayMinLength, err = strconv.Atoi(string(p.consume_line()))
 			if err != nil {
 				panic(err)
 			}
@@ -184,37 +189,37 @@ func (p *parser) parse_member() (m StructMember) {
 		}
 	}
 
-	m.name = consume_token()
-	match_token(":")
+	m.Name = p.consume_token()
+	p.match_token(":")
 
-	if accept_token("?") {
-		m.nullable = true
+	if p.accept_token("?") {
+		m.Nullable = true
 	}
-	if accept_token("[]") {
-		m.array = true
+	if p.accept_token("[]") {
+		m.Array = true
 	}
 
-	m.typ = consume_token()
+	m.Type = p.consume_token()
 	return
 }
 
 func (p *parser) parse_struct_type() *StructType {
 	typ := new(StructType)
 
-	for accept_token("//") {
-		typ.productions = append(typ.productions, parse_production())
+	for p.accept_token("//") {
+		typ.Productions = append(typ.Productions, p.parse_production())
 	}
 
-	match_token("type")
+	p.match_token("type")
 
-	typ.name = consume_token()
+	typ.Name = p.consume_token()
 
-	match_token("=")
-	match_token("struct")
-	match_token("{")
+	p.match_token("=")
+	p.match_token("struct")
+	p.match_token("{")
 
-	for !accept_token("}") {
-		typ.members = append(typ.members, parse_member())
+	for !p.accept_token("}") {
+		typ.Members = append(typ.Members, p.parse_member())
 	}
 
 	return typ
@@ -222,41 +227,41 @@ func (p *parser) parse_struct_type() *StructType {
 
 func (p *parser) parse_struct_type2(name string) *StructType {
 	typ := new(StructType)
-	typ.name = name
+	typ.Name = name
 
-	match_token("struct")
-	match_token("{")
+	p.match_token("struct")
+	p.match_token("{")
 
-	for !accept_token("}") {
-		typ.members = append(typ.members, parse_member())
+	for !p.accept_token("}") {
+		typ.Members = append(typ.Members, p.parse_member())
 	}
 
 	return typ
 }
 
 func (p *parser) parse_type() Type {
-	if current_token() == "//" {
-		return parse_struct_type()
+	if p.current_token() == "//" {
+		return p.parse_struct_type()
 	}
 
-	match_token("type")
+	p.match_token("type")
 
-	name := consume_token()
+	name := p.consume_token()
 
-	if !accept_token("=") {
+	if !p.accept_token("=") {
 		return &LexType{TypeBase{name, false}}
 	}
 
-	if current_token() == "struct" {
-		return parse_struct_type2(name)
+	if p.current_token() == "struct" {
+		return p.parse_struct_type2(name)
 	}
 
 	typ := new(OptionType)
-	typ.name = name
-	typ.options = []string{consume_token()}
+	typ.Name = name
+	typ.Options = []string{p.consume_token()}
 
-	for accept_token("|") {
-		typ.options = append(typ.options, consume_token())
+	for p.accept_token("|") {
+		typ.Options = append(typ.Options, p.consume_token())
 	}
 
 	return typ

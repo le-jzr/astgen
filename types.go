@@ -1,7 +1,6 @@
-package main
+package astgen
 
 import (
-	"strconv"
 )
 
 type Kind int
@@ -13,7 +12,7 @@ const (
 	ENUM
 )
 
-type Type struct {
+type Type interface {
 	Common() *TypeBase
 	Processed() bool
 	SetProcessed()
@@ -51,7 +50,7 @@ type LexicalType struct {
 type OptionType struct {
 	TypeBase
 	
-	SubTypes []string
+	Options []string
 } 
 
 type EnumType struct {
@@ -201,9 +200,9 @@ func (p *Production) MemberPos(name string) int {
 }
 
 func (t *StructType) MemberByName(name string) *StructMember {
-	for i := range t.members {
-		if t.members[i].name == name {
-			return &t.members[i]
+	for i := range t.Members {
+		if t.Members[i].Name == name {
+			return &t.Members[i]
 		}
 	}
 	return nil
@@ -217,12 +216,6 @@ type LexType struct {
 
 
 
-
-func check_type(typ string) {
-	if typ != "bool" && types[typ] == nil {
-		panic("unknown type \"" + typ + "\"")
-	}
-}
 
 func ResetProcessed() {
 	for k := range types {
@@ -242,8 +235,8 @@ func ConcreteTypes(opt string) []string {
 		o := types[opts[0]].(*OptionType)
 		opts = opts[1:]
 
-		for i := range o.options {
-			t := types[o.options[i]]
+		for i := range o.Options {
+			t := types[o.Options[i]]
 			if t.Processed() {
 				continue
 			}
@@ -253,13 +246,12 @@ func ConcreteTypes(opt string) []string {
 			case *LexType:
 				panic("bad definition")
 			case *StructType:
-				result = append(result, t.Name())
+				result = append(result, t.Common().Name)
 			case *OptionType:
-				opts = append(opts, t.Name())
+				opts = append(opts, t.Common().Name)
 			}
 		}
 	}
 
 	return result
 }
-

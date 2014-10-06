@@ -81,6 +81,15 @@ type StructMember struct {
 	Type             string
 }
 
+type Production struct {
+	Tokens []Token
+}
+
+type Token struct {
+	VarRef string
+	Token  string
+}
+
 type LangDef struct {
 	Types map[string]Type
 }
@@ -103,7 +112,7 @@ type LangDef struct {
 
 
 
-
+/*
 
 
 
@@ -111,10 +120,7 @@ type LangDef struct {
 var file []byte
 var types = make(map[string]Type)
 
-type Token struct {
-	varref string
-	token  string
-}
+
 
 func to_uppercase(b byte) byte {
 	if b >= 'a' && b <= 'z' {
@@ -133,33 +139,6 @@ func to_upperstring(s string) string {
 	}
 
 	return string(buf2)
-}
-
-
-
-func sym_name(b byte) string {
-	switch b {
-	case '&':
-		return "AMP"
-	case '|':
-		return "PP"
-	case '<':
-		return "LT"
-	case '>':
-		return "GT"
-	case '=':
-		return "EQ"
-	case '!':
-		return "BANG"
-	case '+':
-		return "PLUS"
-	case '-':
-		return "DASH"
-	case '.':
-		return "DOT"
-	}
-
-	panic("missing case")
 }
 
 func token_symbol(token string) string {
@@ -186,9 +165,7 @@ func token_symbol(token string) string {
 	return ret
 }
 
-type Production struct {
-	tokens []Token
-}
+
 
 func (p *Production) MemberPos(name string) int {
 	for i := range p.tokens {
@@ -254,4 +231,4 @@ func ConcreteTypes(opt string) []string {
 	}
 
 	return result
-}
+}*/

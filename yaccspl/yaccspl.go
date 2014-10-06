@@ -91,7 +91,7 @@ func emit_yacc_enum(ld *astgen.LangDef, t *astgen.EnumType) {
 }
 
 func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
-	fmt.Print(t.name, ":\n")
+	fmt.Print(t.Name, ":\n")
 	first := true
 
 	for i := range t.Productions {
@@ -103,22 +103,22 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 		}
 
 		p := &t.Productions[i]
-		for j := range p.tokens {
-			if p.tokens[j].token != "" {
-				fmt.Print(token_symbol(p.tokens[j].token), " ")
+		for j := range p.Tokens {
+			if p.Tokens[j].Token != "" {
+				fmt.Print(token_symbol(p.Tokens[j].Token), " ")
 			} else {
-				m := t.MemberByName(p.tokens[j].varref)
+				m := t.MemberByName(p.Tokens[j].VarRef)
 
-				if m.array {
-					fmt.Print(t.name, "_", m.name, " ")
+				if m.Array {
+					fmt.Print(t.Name, "_", m.Name, " ")
 				} else if m.typ != "bool" {
-					check_type(m.typ)
-					fmt.Print(m.typ, " ")
+					check_type(m.Type)
+					fmt.Print(m.Type, " ")
 				}
 			}
 		}
 
-		fmt.Print("{ $$ = SExList(", len(t.members), ", ")
+		fmt.Print("{ $$ = SExList(", len(t.Members), ", ")
 
 		for j := range t.members {
 			m := &t.members[j]
@@ -225,4 +225,24 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 
 		fmt.Print(";\n\n")
 	}
+}
+
+
+func yacc_token_name(s string) string {
+	str := ""
+	
+	for _, c := range s {
+		switch {
+		case c >= 'a' && c <= 'z':
+			str += (c - 'a' + 'A')
+		case c >= 'A' && c <= 'Z':
+			str += c
+		case c < 128:
+			str += fmt.Sprintf("%02x", c);
+		default:
+			str += fmt.Sprintf("%08x", c);
+		}
+	}
+	
+	return str
 }

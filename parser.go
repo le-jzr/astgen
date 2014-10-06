@@ -58,81 +58,81 @@ func (p *parser) match_token(token string) {
 }
 
 func (p *parser) consume_line() string {
-	for is_space(file[0]) {
-		file = file[1:]
+	for is_space(p.file[0]) {
+		p.file = p.file[1:]
 	}
 
-	for i := range file {
-		if file[i] == '\n' {
-			ret := string(file[:i])
-			file = file[i+1:]
+	for i := range p.file {
+		if p.file[i] == '\n' {
+			ret := string(p.file[:i])
+			p.file = p.file[i+1:]
 			return ret
 		}
 	}
 
-	ret := string(file)
-	file = nil
+	ret := string(p.file)
+	p.file = nil
 	return ret
 }
 
 func (p *parser) consume_token() string {
-	for is_space(file[0]) {
-		file = file[1:]
+	for is_space(p.file[0]) {
+		p.file = p.file[1:]
 	}
 
-	if len(file) == 0 {
+	if len(p.file) == 0 {
 		panic("bad file")
 	}
 
-	ident := is_letter(file[0])
+	ident := is_letter(p.file[0])
 
-	for i := range file {
-		if ident != is_letter(file[i]) || is_space(file[i]) {
-			ret := string(file[:i])
-			file = file[i:]
+	for i := range p.file {
+		if ident != is_letter(p.file[i]) || is_space(p.file[i]) {
+			ret := string(p.file[:i])
+			p.file = p.file[i:]
 			return ret
 		}
 	}
 
-	ret := string(file)
-	file = nil
+	ret := string(p.file)
+	p.file = nil
 	return ret
 }
 
 func (p *parser) current_token() string {
-	for is_space(file[0]) {
-		file = file[1:]
+	for is_space(p.file[0]) {
+		p.file = p.file[1:]
 	}
 
-	if len(file) == 0 {
+	if len(p.file) == 0 {
 		panic("bad file")
 	}
 
-	ident := is_letter(file[0])
+	ident := is_letter(p.file[0])
 
-	for i := range file {
-		if ident != is_letter(file[i]) || is_space(file[i]) {
-			return string(file[:i])
+	for i := range p.file {
+		if ident != is_letter(p.file[i]) || is_space(p.file[i]) {
+			return string(p.file[:i])
 		}
 	}
 
-	return string(file)
+	return string(p.file)
 }
 
 func (p *parser) finished() bool {
-	for len(file) > 0 && is_space(file[0]) {
-		file = file[1:]
+	for len(p.file) > 0 && is_space(p.file[0]) {
+		p.file = p.file[1:]
 	}
-	return len(file) == 0
+	return len(p.file) == 0
 }
 
 func (p *parser) parse_production() Production {
 	var line []byte
 
-	for i := range file {
-		if file[i] == '\n' {
-			line = file[:i]
-			file = file[i:]
+	for i := range p.file {
+		if p.file[i] == '\n' {
+			line = p.file[:i]
+			p.file = p.file[i:]
 			break
 		}
 	}
@@ -249,7 +249,7 @@ func (p *parser) parse_type() Type {
 	name := p.consume_token()
 
 	if !p.accept_token("=") {
-		return &LexType{TypeBase{name, false}}
+		return &LexicalType{TypeBase{name, false}}
 	}
 
 	if p.current_token() == "struct" {

@@ -4,10 +4,10 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"io/ioutil"
-	"sort"
 	"github.com/zarevucky/astgen"
+	"io/ioutil"
+	"os"
+	"sort"
 )
 
 func main() {
@@ -31,19 +31,18 @@ func main() {
 	for s, _ := range langdef.Types {
 		sortedTypes = append(sortedTypes, s)
 	}
-	
+
 	sort.Sort(sortedTypes)
-	
+
 	for _, s := range sortedTypes {
 		emit_yacc(langdef, langdef.Types[s])
 	}
 }
 
-
 func emit_yacc(ld *astgen.LangDef, t astgen.Type) {
 	switch tt := t.(type) {
 	case *astgen.LexicalType:
-	
+
 	case *astgen.OptionType:
 		emit_yacc_option(ld, tt)
 	case *astgen.EnumType:
@@ -84,18 +83,18 @@ func emit_yacc_option(ld *astgen.LangDef, t *astgen.OptionType) {
 func emit_yacc_enum(ld *astgen.LangDef, t *astgen.EnumType) {
 	fmt.Print(t.Name)
 	fmt.Print(":\n")
-	
+
 	first := true
-	
+
 	for i := range t.EnumTokens {
 		if first {
 			fmt.Print("|")
 		}
 		first = false
-		
+
 		fmt.Printf(" %s  { $$ = SExString(\"%s \"); }\n", yacc_token_name(t.EnumTokens[i].String), t.EnumTokens[i].Name)
 	}
-	
+
 	fmt.Print(";\n\n\n")
 }
 
@@ -236,18 +235,17 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 	}
 }
 
-
 func yacc_token_name(s string) string {
 	if len(s) == 1 {
 		return fmt.Sprintf("'%s'", s)
 	}
-	
+
 	str := "SYM_"
-	
+
 	for _, c := range s {
 		switch {
 		case c >= 'a' && c <= 'z':
-			str += fmt.Sprintf("%c", c - 'a' + 'A')
+			str += fmt.Sprintf("%c", c-'a'+'A')
 		case c >= 'A' && c <= 'Z':
 			str += fmt.Sprintf("%c", c)
 		case c < 128:
@@ -256,6 +254,6 @@ func yacc_token_name(s string) string {
 			str += fmt.Sprintf("%08X", c)
 		}
 	}
-	
+
 	return str
 }

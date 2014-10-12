@@ -1,11 +1,12 @@
 // This application generates a yacc source that parses input file and
 // outputs Lisp-like representation of the AST.
-package yaccspl
+package main
 
 import (
 	"fmt"
 	"os"
 	"io/ioutil"
+	"sort"
 	astgen ".."
 )
 
@@ -25,8 +26,16 @@ func main() {
 		panic(err)
 	}
 
-	for _, t := range langdef.Types {
-		emit_yacc(langdef, t)
+	var sortedTypes sort.StringSlice
+
+	for s, _ := range langdef.Types {
+		sortedTypes = append(sortedTypes, s)
+	}
+	
+	sort.Sort(sortedTypes)
+	
+	for _, s := range sortedTypes {
+		emit_yacc(langdef, langdef.Types[s])
 	}
 }
 
@@ -105,14 +114,14 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 		p := &t.Productions[i]
 		for j := range p.Tokens {
 			if p.Tokens[j].Token != "" {
-				fmt.Print(token_symbol(p.Tokens[j].Token), " ")
+				fmt.Print(yacc_token_name(p.Tokens[j].Token), " ")
 			} else {
 				m := t.MemberByName(p.Tokens[j].VarRef)
 
 				if m.Array {
 					fmt.Print(t.Name, "_", m.Name, " ")
-				} else if m.typ != "bool" {
-					check_type(m.Type)
+				} else if m.Type != "bool" {
+					//check_type(m.Type)
 					fmt.Print(m.Type, " ")
 				}
 			}
@@ -120,19 +129,19 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 
 		fmt.Print("{ $$ = SExList(", len(t.Members), ", ")
 
-		for j := range t.members {
-			m := &t.members[j]
+		for j := range t.Members {
+			m := &t.Members[j]
 
-			if m.typ == "bool" {
-				if p.MemberPos(m.name) < 0 {
+			if m.Type == "bool" {
+				if p.MemberPos(m.Name) < 0 {
 					fmt.Print("SExList(0), ")
 				} else {
-					fmt.Print("SExString(\"", m.name, "\"), ")
+					fmt.Print("SExString(\"", m.Name, "\"), ")
 				}
 			} else {
-				pos := p.MemberPos(m.name)
-				if pos < 0 && !m.nullable && !m.array {
-					panic("missing non-nullable field \"" + m.name + "\"")
+				pos := p.MemberPos(m.Name)
+				if pos < 0 && !m.Nullable && !m.Array {
+					panic("missing non-nullable field \"" + m.Name + "\"")
 				}
 
 				if pos < 0 {
@@ -148,79 +157,79 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 
 	fmt.Print(";\n\n")
 
-	for i := range t.members {
-		m := t.members[i]
+	for i := range t.Members {
+		m := t.Members[i]
 
-		check_type(m.typ)
+		//check_type(m.typ)
 
-		if !m.array {
+		if !m.Array {
 			continue
 		}
 
-		fmt.Print(t.name, "_", m.name, ":\n")
-		fmt.Print("  ", t.name, "_", m.name, "1  { $$ = $1; }\n")
-		if m.array_min_length == 0 {
+		fmt.Print(t.Name, "_", m.Name, ":\n")
+		fmt.Print("  ", t.Name, "_", m.Name, "1  { $$ = $1; }\n")
+		if m.ArrayMinLength == 0 {
 			fmt.Print("| /* empty */  { $$ = SExList(0); }\n")
 			// FIXME: this is an ugly hack
-			m.array_min_length = 1
+			m.ArrayMinLength = 1
 		}
 		fmt.Print(";\n\n")
 
-		fmt.Print(t.name, "_", m.name, "1:\n")
+		fmt.Print(t.Name, "_", m.Name, "1:\n")
 
-		sep := m.array_separator
+		sep := m.ArraySeparator
 		if sep == nil {
-			sep = m.array_terminator
+			sep = m.ArrayTerminator
 		}
 
 		fmt.Print("  ")
-		for j := 0; j < m.array_min_length-1; j++ {
-			fmt.Print(m.typ, " ")
+		for j := 0; j < m.ArrayMinLength-1; j++ {
+			fmt.Print(m.Type, " ")
 
-			for k := range sep.tokens {
-				fmt.Print(token_symbol(sep.tokens[k].token), " ")
+			for k := range sep.Tokens {
+				fmt.Print(yacc_token_name(sep.Tokens[k].Token), " ")
 			}
 		}
 
-		fmt.Print(m.typ, " ")
-		if m.array_terminator != nil {
-			for k := range sep.tokens {
-				fmt.Print(token_symbol(sep.tokens[k].token), " ")
+		fmt.Print(m.Type, " ")
+		if m.ArrayTerminator != nil {
+			for k := range sep.Tokens {
+				fmt.Print(yacc_token_name(sep.Tokens[k].Token), " ")
 			}
 		}
 
-		fmt.Print(" { $$ = SExList(", m.array_min_length, ", ")
+		fmt.Print(" { $$ = SExList(", m.ArrayMinLength, ", ")
 		idx := 1
-		for j := 0; j < m.array_min_length; j++ {
+		for j := 0; j < m.ArrayMinLength; j++ {
 			fmt.Print("$", idx, ", ")
 			if sep == nil {
 				idx++
 			} else {
-				idx += len(sep.tokens) + 1
+				idx += len(sep.Tokens) + 1
 			}
 		}
 		fmt.Print("NULL); }\n")
 
-		if m.array_terminator != nil {
-			fmt.Print("| ", m.typ, " ")
-			for k := range sep.tokens {
-				fmt.Print(token_symbol(sep.tokens[k].token), " ")
+		if m.ArrayTerminator != nil {
+			fmt.Print("| ", m.Type, " ")
+			for k := range sep.Tokens {
+				fmt.Print(yacc_token_name(sep.Tokens[k].Token), " ")
 			}
-			fmt.Print(t.name, "_", m.name, "1  { $$ = SExPrepend($", len(sep.tokens)+2, ", $1); }\n")
+			fmt.Print(t.Name, "_", m.Name, "1  { $$ = SExPrepend($", len(sep.Tokens)+2, ", $1); }\n")
 		} else {
-			fmt.Print("| ", t.name, "_", m.name, "1 ")
+			fmt.Print("| ", t.Name, "_", m.Name, "1 ")
 
 			sep_len := 0
 
 			if sep != nil {
-				sep_len = len(sep.tokens)
+				sep_len = len(sep.Tokens)
 
-				for k := range sep.tokens {
-					fmt.Print(token_symbol(sep.tokens[k].token), " ")
+				for k := range sep.Tokens {
+					fmt.Print(yacc_token_name(sep.Tokens[k].Token), " ")
 				}
 			}
 
-			fmt.Print(m.typ, "  { $$ = SExAppend($1, $", sep_len+2, "); }\n")
+			fmt.Print(m.Type, "  { $$ = SExAppend($1, $", sep_len+2, "); }\n")
 		}
 
 		fmt.Print(";\n\n")
@@ -229,18 +238,22 @@ func emit_yacc_struct(ld *astgen.LangDef, t *astgen.StructType) {
 
 
 func yacc_token_name(s string) string {
-	str := ""
+	if len(s) == 1 {
+		return fmt.Sprintf("'%s'", s)
+	}
+	
+	str := "SYM_"
 	
 	for _, c := range s {
 		switch {
 		case c >= 'a' && c <= 'z':
-			str += (c - 'a' + 'A')
+			str += fmt.Sprintf("%c", c - 'a' + 'A')
 		case c >= 'A' && c <= 'Z':
-			str += c
+			str += fmt.Sprintf("%c", c)
 		case c < 128:
-			str += fmt.Sprintf("%02x", c);
+			str += fmt.Sprintf("%02X", c)
 		default:
-			str += fmt.Sprintf("%08x", c);
+			str += fmt.Sprintf("%08X", c)
 		}
 	}
 	

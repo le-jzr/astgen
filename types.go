@@ -97,8 +97,23 @@ type LangDef struct {
 
 
 
+func (t *StructType) MemberByName(name string) *StructMember {
+	for i := range t.Members {
+		if t.Members[i].Name == name {
+			return &t.Members[i]
+		}
+	}
+	return nil
+}
 
-
+func (p *Production) MemberPos(name string) int {
+	for i := range p.Tokens {
+		if p.Tokens[i].VarRef == name {
+			return i + 1
+		}
+	}
+	return -1
+}
 
 
 
@@ -164,32 +179,6 @@ func token_symbol(token string) string {
 
 	return ret
 }
-
-
-
-func (p *Production) MemberPos(name string) int {
-	for i := range p.tokens {
-		if p.tokens[i].varref == name {
-			return i + 1
-		}
-	}
-	return -1
-}
-
-func (t *StructType) MemberByName(name string) *StructMember {
-	for i := range t.Members {
-		if t.Members[i].Name == name {
-			return &t.Members[i]
-		}
-	}
-	return nil
-}
-
-type LexType struct {
-	TypeBase
-}
-
-
 
 
 

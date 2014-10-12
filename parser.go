@@ -4,14 +4,26 @@ import (
 	"strconv"
 )
 
+// TODO: Get rid of panics.
+
 type parser struct {
 	file []byte
 }
 
 
 func Load(data []byte) (def *LangDef, e error) {
-	// TODO
-	return nil, nil
+	var p parser
+	p.file = data
+	
+	def = new(LangDef)
+	def.Types = make(map[string]Type)
+	
+	for !p.finished() {
+		t := p.parse_type()
+		def.Types[t.Common().Name] = t
+	}
+	
+	return def, nil
 }
 
 func is_space(b byte) bool {

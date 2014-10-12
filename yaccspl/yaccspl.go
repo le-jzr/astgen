@@ -7,7 +7,7 @@ import (
 	"os"
 	"io/ioutil"
 	"sort"
-	astgen ".."
+	"github.com/zarevucky/astgen"
 )
 
 func main() {

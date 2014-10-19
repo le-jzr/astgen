@@ -122,6 +122,10 @@ func (def *LangDef) SanityCheck() (e error) {
 		case *StructType:
 			// TODO: Check for duplicity.
 			for _, memb := range tt.Members {
+				if memb.Type == "bool" {
+					continue
+				}
+				
 				_, ok := def.Types[memb.Type]
 				if !ok {
 					return fmt.Errorf("Undefined type '%s'.", memb.Type)
@@ -133,6 +137,9 @@ func (def *LangDef) SanityCheck() (e error) {
 			// TODO: Check for duplicity.
 		case *OptionType:
 			for _, subtype := range tt.Options {
+				if subtype == "bool" {
+					return fmt.Errorf("Invalid 'bool' in OptionType.")
+				}
 				_, ok := def.Types[subtype]
 				if !ok {
 					return fmt.Errorf("Undefined type '%s'.", subtype)

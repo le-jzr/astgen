@@ -13,7 +13,7 @@ type parser struct {
 
 func Load(data []byte) (def *LangDef, e error) {
 	var p parser
-	p.line = 1
+	p.line = 0
 	p.file = data
 
 	defer func() {

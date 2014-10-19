@@ -208,7 +208,7 @@ func emit_go_type_enum(l *astgen.LangDef, t *astgen.EnumType) {
 	fmt.Printf("type AST%s int\n", t.Name)
 	fmt.Printf("const (\n");
 	for i := 0; i < len(t.EnumTokens); i++ {
-		fmt.Printf("\tAST_%s = AST%s(%d)\n", t.EnumTokens[i], t.Name, i)
+		fmt.Printf("\tAST_%s = AST%s(%d)\n", t.EnumTokens[i].Name, t.Name, i)
 	}
 	fmt.Printf(")\n\n");
 }

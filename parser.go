@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// TODO: Part of this file can be extracted into a miniparser package.
+
 type parser struct {
 	file []byte
 	line int
@@ -13,7 +15,7 @@ type parser struct {
 
 func Load(data []byte) (def *LangDef, e error) {
 	var p parser
-	p.line = 0
+	p.line = 1
 	p.file = data
 
 	defer func() {
@@ -265,6 +267,22 @@ func (p *parser) parse_struct_type2(name string) *StructType {
 	return typ
 }
 
+func (p *parser) parse_enum_type(name string) *EnumType {
+	typ := new(EnumType)
+	typ.Name = name
+	
+	p.match_token("enum")
+	p.match_token("{")
+	
+	for !p.accept_token("}") {
+		token_name := p.consume_token()
+		token_string := p.consume_token()
+		typ.EnumTokens = append(typ.EnumTokens, EnumToken{token_name, token_string})
+	}
+	
+	return typ
+}
+
 func (p *parser) parse_type() Type {
 	if p.current_token() == "//" {
 		return p.parse_struct_type()
@@ -274,8 +292,12 @@ func (p *parser) parse_type() Type {
 
 	name := p.consume_token()
 
-	if !p.accept_token("=") {
+	if p.accept_token("lexical") || !p.accept_token("=") {
 		return &LexicalType{TypeBase{name, false}}
+	}
+	
+	if p.current_token() == "enum" {
+		return p.parse_enum_type(name)
 	}
 
 	if p.current_token() == "struct" {

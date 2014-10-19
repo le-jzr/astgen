@@ -36,10 +36,10 @@ func Load(data []byte) (def *LangDef, e error) {
 	
 	e = def.SanityCheck()
 	if e != nil {
-		def = nil
+		return nil, e
 	}
 	
-	return def, nil
+	return def, e
 }
 
 func is_nl(b byte) bool {

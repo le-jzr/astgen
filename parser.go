@@ -157,7 +157,6 @@ func (p *parser) parse_production() Production {
 
 	for i := range p.file {
 		if p.file[i] == '\n' {
-			p.line++
 			line = p.file[:i]
 			p.file = p.file[i:]
 			break

@@ -17,10 +17,10 @@ func Load(data []byte) (def *LangDef, e error) {
 	p.file = data
 
 	defer func() {
-		e := recover()
-		if e != nil {
+		err := recover()
+		if err != nil {
 			def = nil
-			e = fmt.Errorf("Error on line %d: %s\n", p.line, e)
+			e = fmt.Errorf("Error on line %d: %s\n", p.line, err)
 		}
 	}()
 	

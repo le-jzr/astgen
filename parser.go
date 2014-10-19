@@ -20,7 +20,7 @@ func Load(data []byte) (def *LangDef, e error) {
 		err := recover()
 		if err != nil {
 			def = nil
-			e = fmt.Errorf("Error on line %d: %s\n", p.line, err)
+			e = fmt.Errorf("Error on line %d: %s\nNext 20 bytes: %s\n", p.line, err, string(p.file[:20]))
 		}
 	}()
 	

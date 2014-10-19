@@ -149,6 +149,42 @@ func (def *LangDef) SanityCheck() (e error) {
 
 
 
+func (def *LangDef) ConcreteTypes(opt string) []string {
+	processed := make(map[string]bool)
+	
+	opts := []string{opt}
+	result := []string{}
+
+	processed[opt] = true
+	
+	for len(opts) > 0 {
+		o := def.Types[opts[0]].(*OptionType)
+		opts = opts[1:]
+
+		for _, op := range o.Options {
+			if processed[op] {
+				continue
+			}
+			
+			processed[op] = true
+			
+			t := def.Types[op]
+			
+			switch t.(type) {
+			case *LexicalType, *EnumType:
+				panic("bad definition")
+			case *StructType:
+				result = append(result, t.Common().Name)
+			case *OptionType:
+				opts = append(opts, t.Common().Name)
+			}
+		}
+	}
+
+	return result
+}
+
+
 
 
 
@@ -217,35 +253,4 @@ func ResetProcessed() {
 	}
 }
 
-func ConcreteTypes(opt string) []string {
-	ResetProcessed()
-
-	opts := []string{opt}
-	result := []string{}
-
-	types[opt].SetProcessed()
-
-	for len(opts) > 0 {
-		o := types[opts[0]].(*OptionType)
-		opts = opts[1:]
-
-		for i := range o.Options {
-			t := types[o.Options[i]]
-			if t.Processed() {
-				continue
-			}
-			t.SetProcessed()
-
-			switch t.(type) {
-			case *LexType:
-				panic("bad definition")
-			case *StructType:
-				result = append(result, t.Common().Name)
-			case *OptionType:
-				opts = append(opts, t.Common().Name)
-			}
-		}
-	}
-
-	return result
-}*/
+*/

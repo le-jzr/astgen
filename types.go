@@ -1,6 +1,7 @@
 package astgen
 
 import (
+	"fmt"
 )
 
 type Kind int
@@ -115,8 +116,35 @@ func (p *Production) MemberPos(name string) int {
 	return -1
 }
 
-
-
+func (def *LangDef) SanityCheck() (e error) {
+	for _, t := range def.Types {
+		switch tt := t.(type) {
+		case *StructType:
+			// TODO: Check for duplicity.
+			for _, memb := range tt.Members {
+				_, ok := def.Types[memb.Type]
+				if !ok {
+					return fmt.Errorf("Undefined type '%s'.", memb.Type)
+				}
+			}
+		case *LexicalType:
+			// Nothing needed.
+		case *EnumType:
+			// TODO: Check for duplicity.
+		case *OptionType:
+			for _, subtype := range tt.Options {
+				_, ok := def.Types[subtype]
+				if !ok {
+					return fmt.Errorf("Undefined type '%s'.", subtype)
+				}
+			}
+		default:
+			return fmt.Errorf("Internal error in SanityCheck().")
+		}
+	}
+	
+	return nil
+}
 
 
 

@@ -34,6 +34,11 @@ func Load(data []byte) (def *LangDef, e error) {
 		def.Types[t.Common().Name] = t
 	}
 	
+	e = def.SanityCheck()
+	if e != nil {
+		def = nil
+	}
+	
 	return def, nil
 }
 

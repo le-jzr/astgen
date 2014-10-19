@@ -2,18 +2,27 @@ package astgen
 
 import (
 	"strconv"
+	"fmt"
 )
-
-// TODO: Get rid of panics.
 
 type parser struct {
 	file []byte
+	line int
 }
 
 
 func Load(data []byte) (def *LangDef, e error) {
 	var p parser
+	p.line = 1
 	p.file = data
+
+	defer func() {
+		e := recover()
+		if e != nil {
+			def = nil
+			e = fmt.Errorf("Error on line %d: %s\n", p.line, e)
+		}
+	}()
 	
 	def = new(LangDef)
 	def.Types = make(map[string]Type)
@@ -26,6 +35,10 @@ func Load(data []byte) (def *LangDef, e error) {
 	return def, nil
 }
 
+func is_nl(b byte) bool {
+	return b == '\n' || b == '\r'
+}
+
 func is_space(b byte) bool {
 	return b == ' ' || b == '\t' || b == '\n' || b == '\r'
 }
@@ -34,10 +47,18 @@ func is_letter(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') || b == '_'
 }
 
-func (p *parser) accept_token(token string) bool {
-	for is_space(p.file[0]) {
+func (p *parser) skip_space() {
+	for len(p.file) > 0 && is_space(p.file[0]) {
+		if is_nl(p.file[0]) {
+			p.line++
+		}
+		
 		p.file = p.file[1:]
-	}
+	}	
+}
+
+func (p *parser) accept_token(token string) bool {
+	p.skip_space()
 
 	tok := []byte(token)
 
@@ -70,14 +91,13 @@ func (p *parser) match_token(token string) {
 }
 
 func (p *parser) consume_line() string {
-	for is_space(p.file[0]) {
-		p.file = p.file[1:]
-	}
+	p.skip_space()
 
 	for i := range p.file {
 		if p.file[i] == '\n' {
 			ret := string(p.file[:i])
 			p.file = p.file[i+1:]
+			p.line++
 			return ret
 		}
 	}
@@ -88,9 +108,7 @@ func (p *parser) consume_line() string {
 }
 
 func (p *parser) consume_token() string {
-	for is_space(p.file[0]) {
-		p.file = p.file[1:]
-	}
+	p.skip_space()
 
 	if len(p.file) == 0 {
 		panic("bad file")
@@ -112,9 +130,7 @@ func (p *parser) consume_token() string {
 }
 
 func (p *parser) current_token() string {
-	for is_space(p.file[0]) {
-		p.file = p.file[1:]
-	}
+	p.skip_space()
 
 	if len(p.file) == 0 {
 		panic("bad file")
@@ -132,9 +148,7 @@ func (p *parser) current_token() string {
 }
 
 func (p *parser) finished() bool {
-	for len(p.file) > 0 && is_space(p.file[0]) {
-		p.file = p.file[1:]
-	}
+	p.skip_space()
 	return len(p.file) == 0
 }
 
@@ -143,6 +157,7 @@ func (p *parser) parse_production() Production {
 
 	for i := range p.file {
 		if p.file[i] == '\n' {
+			p.line++
 			line = p.file[:i]
 			p.file = p.file[i:]
 			break

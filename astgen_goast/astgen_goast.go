@@ -1,3 +1,9 @@
+/* Usage: astgen_goast <AST definition>
+ * 
+ * Generates definitions of Go language data types corresponding to the data structures
+ * present in the AST definition. All type names are prefixed with "AST".
+ * NewAST{type}(...) function is generated for each type, as is the Copy() method.
+ */
 package main
 
 import (
@@ -29,6 +35,8 @@ func main() {
 	for s, _ := range langdef.Types {
 		sortedTypes = append(sortedTypes, s)
 	}
+	
+	// TODO: This sorting can be done by the library.
 
 	sort.Sort(sortedTypes)
 
@@ -148,13 +156,13 @@ func emit_go_type_struct(l *astgen.LangDef, t *astgen.StructType) {
 				}
 
 				if m.Nullable {
-					fmt.Print("if ast._", m.Name, " == nil {\n")
-					fmt.Print("__retval._", m.Name, " = nil\n")
-					fmt.Print("} else {\n")
-					fmt.Print("__retval._", m.Name, " = ast._", m.Name, ".Copy().(", typ, ")\n")
-					fmt.Print("}\n")
+					fmt.Print("\tif ast._", m.Name, " == nil {\n")
+					fmt.Print("\t\t__retval._", m.Name, " = nil\n")
+					fmt.Print("\t} else {\n")
+					fmt.Print("\t\t__retval._", m.Name, " = ast._", m.Name, ".Copy().(", typ, ")\n")
+					fmt.Print("\t}\n")
 				} else {
-					fmt.Print("__retval._", m.Name, " = ast._", m.Name, ".Copy().(", typ, ")\n")
+					fmt.Print("\t__retval._", m.Name, " = ast._", m.Name, ".Copy().(", typ, ")\n")
 				}
 			}
 		}
@@ -182,15 +190,15 @@ func emit_go_type_struct(l *astgen.LangDef, t *astgen.StructType) {
 
 		fmt.Print("func (ast *AST", t.Name, ") Copy_", m.Name, "() (ret []", typ, ") {\n")
 
-		fmt.Print("ret = make([]", typ, ", len(ast._", m.Name, "))\n")
-		fmt.Print("for i := range ast._", m.Name, " {\n")
+		fmt.Print("\tret = make([]", typ, ", len(ast._", m.Name, "))\n")
+		fmt.Print("\tfor i := range ast._", m.Name, " {\n")
 		if typ == "string" {
-			fmt.Print("ret[i] = ast._", m.Name, "[i]\n")
+			fmt.Print("\t\tret[i] = ast._", m.Name, "[i]\n")
 		} else {
-			fmt.Print("ret[i] = ast._", m.Name, "[i].Copy().(", typ, ")\n")
+			fmt.Print("\t\tret[i] = ast._", m.Name, "[i].Copy().(", typ, ")\n")
 		}
-		fmt.Print("}\n")
-		fmt.Print("return\n")
+		fmt.Print("\t}\n")
+		fmt.Print("\treturn\n")
 		fmt.Print("}\n\n")
 	}
 }

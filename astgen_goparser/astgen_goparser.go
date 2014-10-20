@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	optionTemplate *template.Template
+	template *template.Template
 )
 
 func main() {
@@ -39,160 +39,169 @@ func main() {
 
 	sort.Sort(sortedTypes)
 
-	for _, s := range sortedTypes {
-		emit_go_parser(langdef, langdef.Types[s])
+	template, err := template.New("").Parse(fullTemplate)
+	if err != nil {
+		panic(err)
+	}
+	
+	err = template.Execute(os.Stdout, sortedTypes)
+	if err != nil {
+		panic(err)
 	}
 }
 
-func init() {
-	/* Initialize templates. */
-	
-	var err error
-	
-	optionTemplate, err = template.New("Option").Parse(`
+// The rest of this file is a template definition. /////////////////////////////
+const fullTemplate = `
 
-func ParseAST{{.Name}}(data []byte) AST{{.Name}} {
-	parts := SplitSExp(UnpackSExp(data))
-	if len(parts) != 2 {
+{{define "Lexical"}}
+{{end}}
+
+{{define "Option"}}
+
+func ParseAST{{.Name}}(p *spl.SeqParser) (ret AST{{.Name}}) {
+	if !p.IsList() {
 		panic("bad file")
 	}
-	switch (parts[0].(string) {
 	
+	p.Down()
+	
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	
+	p.Next()
+	
+	if p.IsEnd() {
+		panic("bad file")
+	}
+	
+	switch tag {
 	{{range .Concretes}}
 	case "{{.}}":
-		return ParseAST{{.}}(parts[1].([]byte))
+		ret = ParseAST{{.}}(p)
+	{{end}}
+	default:
+		panic("missing case for " + tag)
+	}
+	
+	p.Next()
+	if !p.IsEnd() {
+		panic("bad file")
+	}
+	p.Up()
+	
+	return ret
+}
+{{end}}
+
+{{define "Enum"}}
+
+func ParseAST{{.Name}}(p *spl.SeqParser) (ret AST{{.Name}}) {
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	p.Next()
+	
+	switch tag {
+	{{range .EnumTokens}}
+	case "{{.Name}}":
+		return AST{{.Name}}_{{.Name}}
+	{{end}}
+	default:
+		panic("bad file")
+	}
+}
+{{end}}
+
+{{define "Struct"}}
+{{$t := .}}
+
+func ParseAST{{.Name}}(p *spl.SeqParser) (ret *AST{{.Name}}) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	p.Down()
+	
+	if p.IsEnd() {
+		p.Up()
+		return nil
+	}
+	
+	ret = new(AST{{.Name}})
+	
+	{{range $i, $m := .Members}}
+		if p.IsEnd() {
+			panic("bad file")
+		}
+	
+		{{if $m.Array}}
+			ret._{{$m.Name}} = ParseAST{{$t.Name}}_{{$m.Name}}(p)
+		{{else}}
+			{{if $m.Type.Name eq "bool"}}
+				ret._{{$m.Name}} = p.IsString()
+				
+			{{else if $m.Type.Kind eq "Lexical"}}
+				{{if $m.Nullable}}
+					if p.IsString() {
+						s := p.String()
+						ret._{{$m.Name}} = &s
+					}
+				{{else}}
+					ret._{{$m.Name}} = p.String()
+				{{end}}
+			{{else}}
+				ret._{{$m.Name}} = ParseAST{{$m.Type.Name}}(p)
+			{{end}}
+		{{end}}
+		
+		p.Next()
 	{{end}}
 	
-	default:
-		panic("missing case for " + parts[0].(string))
+	if !p.IsEnd() {
+		panic("bad file")
 	}
+	p.Up()
+	
+	return
 }
 
-`)
+{{range .Members}}
+{{if not .Array}}
 
-	if err != nil {
-		panic(err)
-	}
+{{if .Type.Kind eq "Struct"}}{{$typ := printf "*AST%s" .Type.Name}}
+{{else if .Type.Kind eq "Lexical"}}{{$typ := "string"}}
+{{else}}{{$typ := printf "AST%s" .Type.Name}}
+{{end}}
 
-	structTemplate, err = template.New("Struct").Parse(`
-
-
-
-`)
-
-
-}
-
-
-func emit_go_parser(l *astgen.LangDef, t astgen.Type) {
-	switch tt := t.(type) {
-	case *astgen.LexicalType:
-	case *astgen.EnumType:
-	//	emit_go_parser_enum(l, tt)
-	case *astgen.OptionType:
-		emit_go_parser_option(l, tt)
-	case *astgen.StructType:
-	//	emit_go_parser_struct(l, tt)
-	}
-}
-
-func emit_go_parser_enum(l *astgen.LangDef, tt astgen.EnumType) {
-}
-
-type OptionTypeData struct {
-	Name string
-	Concretes []string
-}
-
-func emit_go_parser_option(l *astgen.LangDef, t *astgen.OptionType) {
-	optData := OptionTypeData {
-		Name: t.Name,
-		Concretes: l.ConcreteTypes(t.Name),
+func ParseAST{{$t.Name}}_{{.Name}}(p *spl.SeqParser) (ret []{{$typ}}) {
+	if !p.IsList() {
+		panic("bad file")
 	}
 	
-	err := optionTemplate.Execute(os.Stdout, optData)
-	if err != nil {
-		panic(err)
+	ret = make([]{{$typ}})
+	
+	for p.Down(); !p.IsEnd(); p.Next() {
+		{{if .Type.Kind eq "Lexical"}}
+		ret = append(ret, p.String())
+		{{else}}
+		ret = append(ret, ParseAST{{.Type.Name}}(p)
+		{{end}}
 	}
+	
+	p.Up()
+	
+	return ret
 }
+{{end}}
+{{end}}
+{{end}}
 
-/*
-func emit_go_parser_struct(l *astgen.LangDef, t *StructType) {
-	fmt.Print("func ParseAST", t.name, "(data []byte) (ret *AST", t.name, ") {\n")
-	fmt.Print("parts := SplitSExp(UnpackSExp(data))\n")
-	fmt.Print("if len(parts) != ", len(t.members), " { panic(\"bad file\") }\n")
-	fmt.Print("ret = new(AST", t.name, ")\n")
-
-	for i := range t.members {
-		m := &t.members[i]
-
-		if m.array {
-			fmt.Print("ret._", m.name, " = ParseAST", t.name, "_", m.name, "(parts[", i, "].([]byte))\n")
-		} else {
-			if m.typ == "bool" {
-				fmt.Print("switch parts[", i, "].(type) {\n")
-				fmt.Print("case string: ret._", m.name, " = true\n")
-				fmt.Print("case []byte: ret._", m.name, " = false\n")
-				fmt.Print("}\n")
-			} else {
-				switch types[m.typ].(type) {
-				case *LexType:
-					if m.nullable {
-						fmt.Print("switch part := parts[", i, "].(type) {\n")
-						fmt.Print("case string: ret._", m.name, " = &part\n")
-						fmt.Print("case []byte: ret._", m.name, " = nil\n")
-						fmt.Print("}\n")
-					} else {
-						fmt.Print("ret._", m.name, " = parts[", i, "].(string)\n")
-					}
-				case *OptionType, *StructType:
-					if m.nullable {
-						fmt.Print("if len(parts[", i, "].([]byte)) == 2 {\n")
-						fmt.Print("ret._", m.name, " = nil\n")
-						fmt.Print("} else {\n")
-						fmt.Print("ret._", m.name, " = ParseAST", m.typ, "(parts[", i, "].([]byte))\n")
-						fmt.Print("}\n")
-					} else {
-						fmt.Print("ret._", m.name, " = ParseAST", m.typ, "(parts[", i, "].([]byte))\n")
-					}
-				}
-			}
-		}
-	}
-
-	fmt.Print("return\n")
-	fmt.Print("}\n\n")
-
-	for i := range t.members {
-		m := &t.members[i]
-
-		if !m.array {
-			continue
-		}
-
-		typ := ""
-		switch types[m.typ].(type) {
-		case *StructType:
-			typ = "*AST" + m.typ
-		case *LexType:
-			typ = "string"
-		case *OptionType:
-			typ = "AST" + m.typ
-		}
-
-		fmt.Print("func ParseAST", t.name, "_", m.name, "(data []byte) (ret []", typ, ") {\n")
-		fmt.Print("parts := SplitSExp(UnpackSExp(data))\n")
-
-		fmt.Print("ret = make([]", typ, ", len(parts))\n")
-		fmt.Print("for i := range parts {\n")
-		if typ == "string" {
-			fmt.Print("ret[i] = parts[i].(string)\n")
-		} else {
-			fmt.Print("ret[i] = ParseAST", m.typ, "(parts[i].([]byte))\n")
-		}
-		fmt.Print("}\n")
-		fmt.Print("return\n")
-		fmt.Print("}\n\n")
-	}
-}
-*/
+{{range .}}
+{{template .Kind .}}
+{{end}}
+`

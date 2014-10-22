@@ -14,6 +14,10 @@ import (
 	"sort"
 )
 
+var (
+	structTemplate *template.Template
+)
+
 func main() {
 	f, err := os.Open(os.Args[1])
 	if err != nil {
@@ -45,7 +49,39 @@ func main() {
 	}
 }
 
+func init() {
+	/* Initialize templates. */
+	
+	var err error
+	
+	structTemplate, err = template.New("Struct").Parse(`
 
+
+
+func ParseAST{{.Name}}(data []byte) AST{{.Name}} {
+	parts := SplitSExp(UnpackSExp(data))
+	if len(parts) != 2 {
+		panic("bad file")
+	}
+	switch (parts[0].(string) {
+	
+	{{range .Concretes}}
+	case "{{.}}":
+		return ParseAST{{.}}(parts[1].([]byte))
+	{{end}}
+	
+	default:
+		panic("missing case for " + parts[0].(string))
+	}
+}
+
+`)
+
+	if err != nil {
+		panic(err)
+	}
+
+}
 func emit_go_type(l *astgen.LangDef, t astgen.Type) {
 	switch tt := t.(type) {
 	case *astgen.LexicalType:
@@ -88,40 +124,46 @@ func gotype(l *astgen.LangDef, typ string, array bool, nullable bool) string {
 }
 
 func emit_go_type_struct(l *astgen.LangDef, t *astgen.StructType) {
-	fmt.Print("type AST", t.Common().Name, " struct {\n")
-	fmt.Print("\tASTBase\n")
-
-	for i := range t.Members {
-		m := &t.Members[i]
-		typ := gotype(l, m.Type, m.Array, m.Nullable)
-
-		fmt.Print("\t_", m.Name, " ", typ, "\n")
+	structdata
+	
+	structdata.Name = t.Common.Name()
+	for _, memb := t.Members {
+		structdata.Members = append(structdata.Members, MemberData{memb.Name, gotype(l, memb.Type, memb.Array, memb.Nullable)})
 	}
-
-	fmt.Print("}\n\n")
-
-	fmt.Print("func NewAST", t.Common().Name, "(")
-
-	first := true
-
-	for i := range t.Members {
-		m := &t.Members[i]
-		if first {
-			first = false
-		} else {
-			fmt.Print(", ")
-		}
-		fmt.Print("_", m.Name, " ", gotype(l, m.Type, m.Array, m.Nullable))
+	if len(t.Members) > 0 {
+		structdata.Member0 = &structdata.Members[0]
+		structdata.Members1 = structdata.Members[1:]
 	}
-
-	fmt.Print(") *AST", t.Common().Name, " {\n")
-	fmt.Print("\t__retval := new(AST", t.Common().Name, ")\n")
-
-	for i := range t.Members {
-		m := &t.Members[i]
-		fmt.Print("\t__retval._", m.Name, " = _", m.Name, "\n")
+	
+	
+	`
+	type AST{{.Name}} struct {
+		ASTBase
+		
+		{{range .Members}}
+		_{{.Name}} {{.GoType}}
+		{{end}}
 	}
-	fmt.Print("\treturn __retval\n}\n\n")
+	
+	func NewAST{{.Name}}({{if .Member0}}_{{.Member0.Name}} {{.Member0.GoType}}{{end}}{{range .Members1}}, _{{.Name}} {{.GoType}}{{end}}) *AST{{.Name}} {
+		__retval := new(AST{{.Name}})
+		
+		{{range .Members}}
+		__retval._{{.Name}} = _{{.Name}}
+		{{end}}
+		
+		return __retval
+	}
+	
+	func (ast *AST{{.Name}}) Copy() ASTBaseInterface {
+		__retval := new(AST{{.Name}})
+		
+		{{range .Members}}
+		
+		{{end}}
+	}
+	
+	`
 
 	fmt.Print("func (ast *AST", t.Common().Name, ") Copy() ASTBaseInterface {\n")
 	fmt.Print("\t__retval := new(AST", t.Common().Name, ")\n")

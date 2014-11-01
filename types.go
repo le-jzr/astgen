@@ -53,6 +53,7 @@ type OptionType struct {
 	TypeBase
 	
 	Options []string
+	OptionTypes []Type
 } 
 
 type EnumType struct {
@@ -80,8 +81,10 @@ type StructMember struct {
 	ArrayTerminator  *Production
 	ArraySeparator   *Production
 	ArrayMinLength   int
-	Type             string
+	TypeName         string
+	Type             Type
 }
+
 
 type Production struct {
 	Tokens []Token
@@ -131,19 +134,38 @@ func (p *Production) MemberPos(name string) int {
 	return -1
 }
 
+func (def *LangDef) Resolve() {
+	for _, t := range def.Types {
+		switch tt := t.(type) {
+		case *StructType:
+			for _, memb := range tt.Members {
+				if memb.TypeName == "bool" {
+					continue
+				}
+				
+				memb.Type = def.Types[memb.TypeName]
+			}
+		case *OptionType:
+			for _, subtype := range tt.Options {
+				tt.OptionTypes = append(tt.OptionTypes, def.Types[subtype])
+			}
+		}
+	}
+}
+
 func (def *LangDef) SanityCheck() (e error) {
 	for _, t := range def.Types {
 		switch tt := t.(type) {
 		case *StructType:
 			// TODO: Check for duplicity.
 			for _, memb := range tt.Members {
-				if memb.Type == "bool" {
+				if memb.TypeName == "bool" {
 					continue
 				}
 				
-				_, ok := def.Types[memb.Type]
+				_, ok := def.Types[memb.TypeName]
 				if !ok {
-					return fmt.Errorf("Undefined type '%s'.", memb.Type)
+					return fmt.Errorf("Undefined type '%s'.", memb.TypeName)
 				}
 			}
 		case *LexicalType:

@@ -39,6 +39,8 @@ func Load(data []byte) (def *LangDef, e error) {
 		return nil, e
 	}
 	
+	def.Resolve()
+	
 	return def, e
 }
 
@@ -232,7 +234,7 @@ func (p *parser) parse_member() (m StructMember) {
 		m.Array = true
 	}
 
-	m.Type = p.consume_token()
+	m.TypeName = p.consume_token()
 	return
 }
 

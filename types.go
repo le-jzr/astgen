@@ -15,6 +15,7 @@ const (
 
 type Type interface {
 	Common() *TypeBase
+	Kind() string
 	Processed() bool
 	SetProcessed()
 	ResetProcessed()
@@ -96,7 +97,21 @@ type LangDef struct {
 }
 
 
+func (t *StructType) Kind() string {
+	return "Struct"
+}
 
+func (t *LexicalType) Kind() string {
+	return "Lexical"
+}
+
+func (t *OptionType) Kind() string {
+	return "Option"
+}
+
+func (t *EnumType) Kind() string {
+	return "Enum"
+}
 
 func (t *StructType) MemberByName(name string) *StructMember {
 	for i := range t.Members {

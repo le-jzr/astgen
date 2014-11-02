@@ -1,0 +1,151 @@
+{{define "Option"}}
+
+func ParseAST{{.Common.Name}}(p *spl.SeqParser) (ret AST{{.Common.Name}}) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	p.Down()
+	
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	
+	p.Next()
+	
+	if p.IsEnd() {
+		panic("bad file")
+	}
+	
+	switch tag {
+	{{range .ConcreteTypes}}
+	case "{{.}}":
+		ret = ParseAST{{.}}(p)
+	{{end}}
+	default:
+		panic("missing case for " + tag)
+	}
+	
+	p.Next()
+	if !p.IsEnd() {
+		panic("bad file")
+	}
+	p.Up()
+	
+	return ret
+}
+{{end}}
+
+{{define "Enum"}}
+
+func ParseAST{{.Common.Name}}(p *spl.SeqParser) (ret AST{{.Common.Name}}) {
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	p.Next()
+	
+	switch tag {
+	{{range .EnumTokens}}
+	case "{{.Common.Name}}":
+		return AST{{.Common.Name}}_{{.Common.Name}}
+	{{end}}
+	default:
+		panic("bad file")
+	}
+}
+{{end}}
+
+{{define "TypeName"}}{{if eq .Kind "Struct"}}*AST{{.Common.Name}}{{else if eq .Kind "Lexical"}}string{{else}}AST{{.Common.Name}}{{end}}{{end}}
+
+{{define "Struct"}}
+{{$t := .}}
+
+func ParseAST{{.Common.Name}}(p *spl.SeqParser) (ret *AST{{.Common.Name}}) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	p.Down()
+	
+	if p.IsEnd() {
+		p.Up()
+		return nil
+	}
+	
+	ret = new(AST{{.Common.Name}})
+	
+	{{range $i, $m := .Members}}
+		if p.IsEnd() {
+			panic("bad file")
+		}
+	
+		{{if $m.Array}}
+			ret._{{$m.Name}} = ParseAST{{$t.Common.Name}}_{{$m.Name}}(p)
+		{{else}}
+			{{if not $m.Type}}
+				ret._{{$m.Name}} = p.IsString()
+				
+			{{else if eq $m.Type.Kind "Lexical"}}
+				{{if $m.Nullable}}
+					if p.IsString() {
+						s := p.String()
+						ret._{{$m.Name}} = &s
+					}
+				{{else}}
+					ret._{{$m.Name}} = p.String()
+				{{end}}
+			{{else}}
+				ret._{{$m.Name}} = ParseAST{{$m.Type.Common.Name}}(p)
+			{{end}}
+		{{end}}
+		
+		p.Next()
+	{{end}}
+	
+	if !p.IsEnd() {
+		panic("bad file")
+	}
+	p.Up()
+	
+	return
+}
+
+{{range .Members}}
+{{if .Array}}
+
+func ParseAST{{$t.Common.Name}}_{{.Name}}(p *spl.SeqParser) (ret []{{template "TypeName" .Type}}) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	ret = make([]{{template "TypeName" .Type}})
+	
+	for p.Down(); !p.IsEnd(); p.Next() {
+		{{if eq .Type.Kind "Lexical"}}
+		ret = append(ret, p.String())
+		{{else}}
+		ret = append(ret, ParseAST{{.Type.Common.Name}}(p)
+		{{end}}
+	}
+	
+	p.Up()
+	
+	return ret
+}
+{{end}}
+{{end}}
+{{end}}
+
+{{range .}}
+{{if eq .Kind "Struct"}}
+{{template "Struct" .}}
+{{else if eq .Kind "Option"}}
+{{template "Option" .}}
+{{else if eq .Kind "Enum"}}
+{{template "Enum" .}}
+{{end}}
+{{end}}

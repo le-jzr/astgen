@@ -132,6 +132,36 @@ func (p *Production) MemberPos(name string) int {
 	return -1
 }
 
+func (t *OptionType) ConcreteTypes() []string {
+	processed := make(map[string]bool)
+	processed[t.Name] = true
+	
+	opts := []*OptionType{t}
+	result := []string{}
+	
+	for _, tt := range opts {
+		opts = opts[1:]
+		for _, ttt := range tt.Options {
+			
+			if processed[ttt.Common().Name] {
+				continue
+			}
+			processed[ttt.Common().Name] = true
+			
+			switch ttt.(type) {
+			case *LexicalType, *EnumType, *BoolType:
+				panic("bad definition")
+			case *StructType:
+				result = append(result, ttt.Common().Name)
+			case *OptionType:
+				opts = append(opts, ttt.(*OptionType))
+			}
+		}
+	}
+
+	return result
+}
+
 func (def *LangDef) ConcreteTypes(opt string) []string {
 	processed := make(map[string]bool)
 	

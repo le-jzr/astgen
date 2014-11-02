@@ -30,6 +30,10 @@ func (t *TypeBase) ResetProcessed() {
 	t.processed = false
 }
 
+type UnresolvedType struct {
+	TypeBase
+}
+
 type BoolType struct {
 	TypeBase
 }
@@ -84,6 +88,10 @@ type Token struct {
 
 type LangDef struct {
 	Types map[string]Type
+}
+
+func (t *UnresolvedType) Kind() string {
+	return "Unresolved"
 }
 
 func (t *BoolType) Kind() string {
@@ -159,7 +167,28 @@ func (def *LangDef) ConcreteTypes(opt string) []string {
 	return result
 }
 
-
+func (def *LangDef) Resolve() {
+	for _, t := range def.Types {
+		switch tt := t.(type) {
+		case *StructType:
+			for _, memb := range tt.Members {
+				tttt := def.Types[memb.Type.Common().Name]
+				if tttt == nil {
+					panic("Undefined type '" + memb.Type.Common().Name + "'")
+				}
+				memb.Type = tttt
+			}
+		case *OptionType:
+			for i, ttt := range tt.Options {
+				tttt := def.Types[ttt.Common().Name]
+				if tttt == nil {
+					panic("Undefined type '" + ttt.Common().Name + "'")
+				}
+				tt.Options[i] = tttt
+			}
+		}
+	}
+}
 
 
 

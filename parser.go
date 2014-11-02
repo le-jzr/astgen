@@ -39,6 +39,8 @@ func Load(data []byte) (def *LangDef, e error) {
 		p.def.Types[t.Common().Name] = t
 	}
 	
+	p.def.Resolve()
+	
 	return p.def, e
 }
 
@@ -231,12 +233,9 @@ func (p *parser) parse_member() (m StructMember) {
 	if p.accept_token("[]") {
 		m.Array = true
 	}
-
-	typename := p.consume_token()
-	m.Type = p.def.Types[typename]
-	if m.Type == nil {
-		panic("Unknown type '" + typename + "'")
-	}
+	
+	m.Type = new(UnresolvedType)
+	m.Type.Common().Name = p.consume_token()
 	return
 }
 
@@ -317,11 +316,8 @@ func (p *parser) parse_type() Type {
 	typ.Name = name
 	
 	for {
-		tn := p.consume_token()
-		t := p.def.Types[tn]
-		if t == nil {
-			panic("Unknown type name '" + tn + "'")
-		}
+		t := new(UnresolvedType)
+		t.Name = p.consume_token()
 		
 		typ.Options = append(typ.Options, t)
 		

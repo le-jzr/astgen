@@ -1,9 +1,5 @@
 package astgen
 
-import (
-	"fmt"
-)
-
 type Type interface {
 	Common() *TypeBase
 	Kind() string
@@ -45,8 +41,7 @@ type LexicalType struct {
 type OptionType struct {
 	TypeBase
 	
-	Options []string
-	OptionTypes []Type
+	Options []Type
 } 
 
 type EnumType struct {
@@ -74,7 +69,6 @@ type StructMember struct {
 	ArrayTerminator  *Production
 	ArraySeparator   *Production
 	ArrayMinLength   int
-	TypeName         string
 	Type             Type
 }
 
@@ -130,59 +124,6 @@ func (p *Production) MemberPos(name string) int {
 	return -1
 }
 
-func (def *LangDef) Resolve() {
-	for _, t := range def.Types {
-		switch tt := t.(type) {
-		case *StructType:
-			for _, memb := range tt.Members {
-				memb.Type = def.Types[memb.TypeName]
-				if memb.Type == nil {
-					panic("bug")
-				}
-			}
-		case *OptionType:
-			for _, subtype := range tt.Options {
-				tt.OptionTypes = append(tt.OptionTypes, def.Types[subtype])
-			}
-		}
-	}
-}
-
-func (def *LangDef) SanityCheck() (e error) {
-	for _, t := range def.Types {
-		switch tt := t.(type) {
-		case *StructType:
-			// TODO: Check for duplicity.
-			for _, memb := range tt.Members {
-				_, ok := def.Types[memb.TypeName]
-				if !ok {
-					return fmt.Errorf("Undefined type '%s'.", memb.TypeName)
-				}
-			}
-		case *LexicalType:
-			// Nothing needed.
-		case *EnumType:
-			// TODO: Check for duplicity.
-		case *OptionType:
-			for _, subtype := range tt.Options {
-				_, ok := def.Types[subtype]
-				if !ok {
-					return fmt.Errorf("Undefined type '%s'.", subtype)
-				}
-			}
-		case *BoolType:
-			// Nothing.
-		default:
-			return fmt.Errorf("Internal error in SanityCheck().")
-		}
-	}
-	
-	return nil
-}
-
-
-
-
 func (def *LangDef) ConcreteTypes(opt string) []string {
 	processed := make(map[string]bool)
 	
@@ -196,13 +137,13 @@ func (def *LangDef) ConcreteTypes(opt string) []string {
 		opts = opts[1:]
 
 		for _, op := range o.Options {
-			if processed[op] {
+			if processed[op.Common().Name] {
 				continue
 			}
 			
-			processed[op] = true
+			processed[op.Common().Name] = true
 			
-			t := def.Types[op]
+			t := op
 			
 			switch t.(type) {
 			case *LexicalType, *EnumType, *BoolType:

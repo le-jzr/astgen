@@ -10,6 +10,7 @@ import (
 type parser struct {
 	file []byte
 	line int
+	def *LangDef
 }
 
 
@@ -26,23 +27,19 @@ func Load(data []byte) (def *LangDef, e error) {
 		}
 	}()
 	
-	def = new(LangDef)
-	def.Types = make(map[string]Type)
-	def.Types["bool"] = new(BoolType)
+	p.def = new(LangDef)
+	p.def.Types = make(map[string]Type)
+	p.def.Types["bool"] = new(BoolType)
 	
 	for !p.finished() {
 		t := p.parse_type()
-		def.Types[t.Common().Name] = t
+		if t == nil {
+			panic("bug")
+		}
+		p.def.Types[t.Common().Name] = t
 	}
 	
-	e = def.SanityCheck()
-	if e != nil {
-		return nil, e
-	}
-	
-	def.Resolve()
-	
-	return def, e
+	return p.def, e
 }
 
 func is_nl(b byte) bool {
@@ -235,7 +232,11 @@ func (p *parser) parse_member() (m StructMember) {
 		m.Array = true
 	}
 
-	m.TypeName = p.consume_token()
+	typename := p.consume_token()
+	m.Type = p.def.Types[typename]
+	if m.Type == nil {
+		panic("Unknown type '" + typename + "'")
+	}
 	return
 }
 
@@ -314,10 +315,19 @@ func (p *parser) parse_type() Type {
 
 	typ := new(OptionType)
 	typ.Name = name
-	typ.Options = []string{p.consume_token()}
-
-	for p.accept_token("|") {
-		typ.Options = append(typ.Options, p.consume_token())
+	
+	for {
+		tn := p.consume_token()
+		t := p.def.Types[tn]
+		if t == nil {
+			panic("Unknown type name '" + tn + "'")
+		}
+		
+		typ.Options = append(typ.Options, t)
+		
+		if !p.accept_token("|") {
+			break
+		}
 	}
 
 	return typ

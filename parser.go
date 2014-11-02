@@ -28,6 +28,7 @@ func Load(data []byte) (def *LangDef, e error) {
 	
 	def = new(LangDef)
 	def.Types = make(map[string]Type)
+	def.Types["bool"] = new(BoolType)
 	
 	for !p.finished() {
 		t := p.parse_type()

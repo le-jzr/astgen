@@ -4,15 +4,6 @@ import (
 	"fmt"
 )
 
-type Kind int
-
-const (
-	LEXICAL = Kind(iota)
-	STRUCT
-	OPTION
-	ENUM
-)
-
 type Type interface {
 	Common() *TypeBase
 	Kind() string
@@ -43,7 +34,9 @@ func (t *TypeBase) ResetProcessed() {
 	t.processed = false
 }
 
-
+type BoolType struct {
+	TypeBase
+}
 
 type LexicalType struct {
 	TypeBase
@@ -99,6 +92,9 @@ type LangDef struct {
 	Types map[string]Type
 }
 
+func (t *BoolType) Kind() string {
+	return "Bool"
+}
 
 func (t *StructType) Kind() string {
 	return "Struct"
@@ -139,11 +135,10 @@ func (def *LangDef) Resolve() {
 		switch tt := t.(type) {
 		case *StructType:
 			for _, memb := range tt.Members {
-				if memb.TypeName == "bool" {
-					continue
-				}
-				
 				memb.Type = def.Types[memb.TypeName]
+				if memb.Type == nil {
+					panic("bug")
+				}
 			}
 		case *OptionType:
 			for _, subtype := range tt.Options {
@@ -159,10 +154,6 @@ func (def *LangDef) SanityCheck() (e error) {
 		case *StructType:
 			// TODO: Check for duplicity.
 			for _, memb := range tt.Members {
-				if memb.TypeName == "bool" {
-					continue
-				}
-				
 				_, ok := def.Types[memb.TypeName]
 				if !ok {
 					return fmt.Errorf("Undefined type '%s'.", memb.TypeName)
@@ -174,14 +165,13 @@ func (def *LangDef) SanityCheck() (e error) {
 			// TODO: Check for duplicity.
 		case *OptionType:
 			for _, subtype := range tt.Options {
-				if subtype == "bool" {
-					return fmt.Errorf("Invalid 'bool' in OptionType.")
-				}
 				_, ok := def.Types[subtype]
 				if !ok {
 					return fmt.Errorf("Undefined type '%s'.", subtype)
 				}
 			}
+		case *BoolType:
+			// Nothing.
 		default:
 			return fmt.Errorf("Internal error in SanityCheck().")
 		}
@@ -215,7 +205,7 @@ func (def *LangDef) ConcreteTypes(opt string) []string {
 			t := def.Types[op]
 			
 			switch t.(type) {
-			case *LexicalType, *EnumType:
+			case *LexicalType, *EnumType, *BoolType:
 				panic("bad definition")
 			case *StructType:
 				result = append(result, t.Common().Name)

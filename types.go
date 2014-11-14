@@ -201,12 +201,12 @@ func (def *LangDef) Resolve() {
 	for _, t := range def.Types {
 		switch tt := t.(type) {
 		case *StructType:
-			for _, memb := range tt.Members {
+			for i, memb := range tt.Members {
 				tttt := def.Types[memb.Type.Common().Name]
 				if tttt == nil {
 					panic("Undefined type '" + memb.Type.Common().Name + "'")
 				}
-				memb.Type = tttt
+				tt.Members[i].Type = tttt
 			}
 		case *OptionType:
 			for i, ttt := range tt.Options {

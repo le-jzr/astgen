@@ -299,8 +299,7 @@ func (p *parser) parse_type() Type {
 	p.match_token("type")
 
 	name := p.consume_token()
-
-	if p.accept_token("lexical") || !p.accept_token("=") {
+	if !p.accept_token("=") {
 		return &LexicalType{TypeBase{name, false}}
 	}
 	

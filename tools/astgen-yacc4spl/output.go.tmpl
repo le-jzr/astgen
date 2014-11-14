@@ -1,0 +1,316 @@
+// package main
+//
+// import (
+//	"fmt"
+// )
+
+// func emitPrologue() {
+
+%{
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <stdarg.h>
+	#include <ctype.h>
+	#include <string.h>
+	#include <assert.h>
+	
+	void yyerror(const char *s);
+	int yylex(void);
+%}
+
+%code requires {
+	
+	typedef struct sexp {
+		char *string;
+		struct sexp **list;
+	} *sexp_t;
+	
+	extern sexp_t SExString(const char *str);
+	extern sexp_t SExList(int count, ...);
+	extern sexp_t SExpression(const char *head, ...) __attribute__((sentinel));
+	extern sexp_t SExPrepend(sexp_t, sexp_t);
+	extern sexp_t SExAppend(sexp_t, sexp_t);
+
+	extern void PrintSExpression(FILE *f, sexp_t ex, int indent);
+
+	extern const char *UnescapeString(const char *s);
+
+	extern sexp_t Unnamed();
+
+	#define YYSTYPE sexp_t
+}
+
+%error-verbose
+%define parse.lac full
+
+// for _, val := range allTokens {
+%token /* val */ 
+// }
+
+%%
+
+File:
+  GlobalList {}
+;
+
+GlobalList:
+                    { }
+| GlobalList Global { PrintSExpression(stdout, $2, 0); }
+;
+
+// }
+
+
+//// Here come the grammar rules.
+
+
+// func emitEpilogue() {
+
+%%
+
+void yyerror(const char *s) {
+	fprintf(stderr, "%s\n", s);
+}
+
+int main(void) {
+	yydebug = 0;
+	return yyparse();
+}
+
+
+
+sexp_t SExString(const char *str) {
+	sexp_t ex = calloc(sizeof(struct sexp), 1);
+	ex->string = strdup(str);
+	ex->list = NULL;
+	return ex;
+}
+
+sexp_t SExList(int count, ...) {
+	/////* Create the array. */
+	sexp_t *list = calloc(sizeof(sexp_t), count + 1);
+	
+	va_list ap;
+	va_start(ap, count);
+	for (int i = 0; i < count; i++) {
+		list[i] = va_arg(ap, sexp_t);
+	}
+	list[count] = NULL;
+	va_end(ap);
+	
+	/////* Create the structure. */
+	sexp_t ex = calloc(sizeof(struct sexp), 1);
+	ex->string = NULL;
+	ex->list = list;
+	
+	return ex;
+}
+
+sexp_t SExpression(const char *head, ...) {
+	va_list ap;
+	
+	/////* Count the arguments. */
+	va_start(ap, head);
+	int list_len = 1;
+	while (va_arg(ap, sexp_t) != NULL) {
+		list_len++;
+	}
+	va_end(ap);
+	
+	/////* Create the array. */
+	sexp_t *list = calloc(sizeof(sexp_t), list_len + 1);
+	
+	va_start(ap, head);
+	for (int i = 1; i < list_len; i++) {
+		list[i] = va_arg(ap, sexp_t);
+	}
+	list[0] = SExString(head);
+	list[list_len] = NULL;
+	va_end(ap);
+	
+	/////* Create the structure. */
+	sexp_t ex = calloc(sizeof(struct sexp), 1);
+	ex->string = NULL;
+	ex->list = list;
+	
+	return ex;
+}
+
+sexp_t SExAppend(sexp_t ex1, sexp_t ex2) {
+	assert(ex1->list != NULL);
+	
+	int list_len = 0;
+	while (ex1->list[list_len] != NULL) {
+		list_len++;
+	}
+	
+	sexp_t *new_list = calloc(sizeof(sexp_t), list_len + 2);
+	for (int i = 0; i < list_len; i++) {
+		new_list[i] = ex1->list[i];
+	}
+	new_list[list_len] = ex2;
+	new_list[list_len+1] = NULL;
+	
+	free(ex1->list);
+	ex1->list = new_list;
+	return ex1;
+}
+
+sexp_t SExPrepend(sexp_t ex1, sexp_t ex2) {
+	int list_len = 0;
+	while (ex1->list[list_len] != NULL) {
+		list_len++;
+	}
+	
+	sexp_t *new_list = calloc(sizeof(sexp_t), list_len + 2);
+	new_list[0] = ex2;
+	for (int i = 0; i < list_len; i++) {
+		new_list[i+1] = ex1->list[i];
+	}
+	new_list[list_len+1] = NULL;
+	
+	free(ex1->list);
+	ex1->list = new_list;
+	return ex1;
+}
+
+void printString(FILE *f, const char *s) {
+	fputc('"', f);
+	while (*s != 0) {
+		if (!isascii(*s) || !isprint(*s) || *s == '"' || *s == '\\' || *s == '\n') {
+			fprintf(f, "\\x%02x", (unsigned)*s);
+		} else {
+			fputc(*s, f);
+		}
+		s++;
+	}
+	fputc('"', f);
+}
+
+void printIndent(FILE *f, int indent) {
+	for (; indent > 0; indent--) {
+		fprintf(f, "\t");
+	}
+}
+
+void PrintSExpression(FILE *f, sexp_t ex, int indent) {
+	if (ex->string != NULL) {
+		printIndent(f, indent);
+		printString(f, ex->string);
+		fprintf(f, "\n");
+		return;
+	}
+	
+	if (ex->list[0] == NULL) {
+		printIndent(f, indent);
+		fprintf(f, "()\n");
+		return;
+	}
+	
+	printIndent(f, indent);
+	fprintf(f, "(\n");
+	
+	for (int i = 0; ex->list[i] != NULL; i++) {
+		PrintSExpression(f, ex->list[i], indent + 1);
+	}
+	
+	printIndent(f, indent);
+	fprintf(f, ")\n");
+}
+
+const char *UnescapeString(const char *s) {
+	static int buffer_len = 0;
+	static char *buffer = NULL;
+	
+	int buffer_used = 0;
+	
+	int len = strlen(s);
+	
+	if (len > buffer_len || buffer == NULL) {
+		buffer_len = len;
+		free(buffer);
+		buffer = malloc(buffer_len + 1);
+		if (buffer == NULL) {
+			fprintf(stderr, "Out of memory.");
+			exit(1);
+		}
+	}
+	
+	int i;
+	for (i = 1; i < len-1; i++) {
+		if (s[i] != '\\') {
+			buffer[buffer_used++] = s[i];
+			continue;
+		}
+		
+		i++;
+		
+		switch (s[i]) {
+		case 'a':
+			buffer[buffer_used++] = 0x07;
+			break;
+		case 'b':
+			buffer[buffer_used++] = 0x08;
+			break;
+		case 'f':
+			buffer[buffer_used++] = 0x0C;
+			break;
+		case 'n':
+			buffer[buffer_used++] = 0x0A;
+			break;
+		case 'r':
+			buffer[buffer_used++] = 0x0D;
+			break;
+		case 't':
+			buffer[buffer_used++] = 0x09;
+			break;
+		case 'v':
+			buffer[buffer_used++] = 0x0B;
+			break;
+		case '\\':
+			buffer[buffer_used++] = '\\';
+			break;
+		case '\'':
+			buffer[buffer_used++] = '\'';
+			break;
+		case '"':
+			buffer[buffer_used++] = '"';
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+			////// TODO
+			fprintf(stderr, "Octal escapes unimplemented.\n");
+			exit(1);
+		case 'x':
+			////// TODO
+			fprintf(stderr, "Hex escapes unimplemented.\n");
+			exit(1);
+		case 'u':
+		case 'U':
+			////// TODO
+			fprintf(stderr, "Unicode escapes unimplemented.\n");
+			exit(1);
+		default:
+			fprintf(stderr, "Invalid escape sequence unimplemented.\n");
+			exit(1);
+		}
+	}
+	
+	buffer[buffer_used] = 0;
+	
+	return buffer;
+}
+
+sexp_t Unnamed() {
+	static int index = 0;
+	
+	char buf[256];
+	snprintf(buf, 255, "__unnamed_%d", index);
+	index++;
+	
+	return SExString(buf); 
+}
+
+// }

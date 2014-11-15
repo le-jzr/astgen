@@ -59,19 +59,19 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	// for _, m := range t.Members {
 
 	// if m.Array {
-	__retval._/* m.Name */ = ast.Copy_/* m.Name */()
+	__retval._/* m.Name */ = node.Copy_/* m.Name */()
 	// }
 
 	// switch m.Type.(type) {
 	// case *astgen.BoolType, *astgen.EnumType:
-	__retval._/* m.Name */ = ast._/* m.Name */
+	__retval._/* m.Name */ = node._/* m.Name */
 
 	// case *astgen.LexicalType: 
 	// if m.Nullable {
 	__retval._/* m.Name */ = new(string)
-	*__retval._/* m.Name */ = *ast._/* m.Name */
+	*__retval._/* m.Name */ = *node._/* m.Name */
 	// } else {
-	__retval._/* m.Name */ = ast._/* m.Name */
+	__retval._/* m.Name */ = node._/* m.Name */
 	// }
 
 	// case *astgen.OptionType, *astgen.StructType:
@@ -82,7 +82,7 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	//	case *astgen.OptionType:
 	//		typ = "AST" + m.Type.Common().Name
 	//	}
-	__retval._/* m.Name */ = ast._/* m.Name */.Copy().(/* typ */)
+	__retval._/* m.Name */ = node._/* m.Name */.Copy().(/* typ */)
 
 	// }
 
@@ -122,14 +122,14 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 
 func (node *AST/* t.Name */) Copy_/* m.Name */() (ret []/* typ*/) {
 	
-	ret = make([]/* typ */, len(ast._/* m.Name */))
+	ret = make([]/* typ */, len(node._/* m.Name */))
 	
 	// if copy {
-	copy(ret, ast._/* m.Name */)
+	copy(ret, node._/* m.Name */)
 	// } else {
 
-	for i := range ast._/* m.Name */ {
-		ret[i] = ast._/* m.Name */[i].Copy().(/* typ */)
+	for i := range node._/* m.Name */ {
+		ret[i] = node._/* m.Name */[i].Copy().(/* typ */)
 	}
 	
 	// }

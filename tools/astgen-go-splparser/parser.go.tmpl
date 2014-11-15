@@ -12,6 +12,11 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 	
 	p.Down()
 	
+	if p.IsEnd() {
+		p.Up()
+		return nil
+	}
+	
 	if !p.IsString() {
 		log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
 	}

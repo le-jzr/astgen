@@ -187,7 +187,7 @@ fmt.Print("\t\tret = append(ret, p.String())\n")
 	} else {
 fmt.Print("\t\tret = append(ret, ParseAST")
 fmt.Printf("%v",  m.Type.Common().Name )
-fmt.Print("(p)\n")
+fmt.Print("(p))\n")
 	}
 fmt.Print("\t}\n")
 fmt.Print("\t\n")

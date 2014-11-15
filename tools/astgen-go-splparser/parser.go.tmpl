@@ -143,7 +143,7 @@ func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */) {
 		//	if m.Type.Kind() == "Lexical" {
 		ret = append(ret, p.String())
 		//	} else {
-		ret = append(ret, ParseAST/* m.Type.Common().Name */(p)
+		ret = append(ret, ParseAST/* m.Type.Common().Name */(p))
 		//	}
 	}
 	

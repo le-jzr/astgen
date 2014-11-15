@@ -1,0 +1,152 @@
+//// This file was generated from defs.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "github.com/zarevucky/astgen"
+// import "fmt"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitGoOption(t *astgen.OptionType) {
+
+type AST/* t.Name */ interface {
+	ASTBaseInterface
+}
+
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitGoStruct(t *astgen.StructType) {
+
+type AST/* t.Name */ struct {
+	ASTBase
+	
+	// for _, memb := range t.Members {
+
+	_/* memb.Name */ /* gotype(&memb) */
+
+	// }
+}
+
+func NewAST/* t.Name */(//
+// for i, memb := range t.Members {
+//	if i != 0 {
+, //
+//	}
+_/* memb.Name */ /* gotype(&memb) */
+// }
+) *AST/* t.Name */ {
+	__retval := new(AST/* t.Name */)
+	
+	// for _, memb := range t.Members {
+
+	__retval._/* memb.Name */ = _/* memb.Name */
+
+	// }
+
+	return __retval
+}
+
+func (node *AST/* t.Name */) Copy() ASTBaseInterface {
+	
+	if node == nil {
+		nullptr = (*AST/* t.Name */)nil
+		return nullptr
+	}
+	
+	__retval := new(AST/* t.Name */)
+	
+	// for _, m := range t.Members {
+
+	// if m.Array {
+	__retval._/* m.Name */ = ast.Copy_/* m.Name */()
+	// }
+
+	// switch m.Type.(type) {
+	// case *astgen.BoolType, *astgen.EnumType:
+	__retval._/* m.Name */ = ast._/* m.Name */
+
+	// case *astgen.LexicalType: 
+	// if m.Nullable {
+	__retval._/* m.Name */ = new(string)
+	*__retval._/* m.Name */ = *ast._/* m.Name */
+	// } else {
+	__retval._/* m.Name */ = ast._/* m.Name */
+	// }
+
+	// case *astgen.OptionType, *astgen.StructType:
+	//	typ := ""
+	//	switch m.Type.(type) {
+	//	case *astgen.StructType:
+	//		typ = "*AST" + m.Type.Common().Name
+	//	case *astgen.OptionType:
+	//		typ = "AST" + m.Type.Common().Name
+	//	}
+	__retval._/* m.Name */ = ast._/* m.Name */.Copy().(/* typ */)
+
+	// }
+
+	// }
+	
+	return __retval
+}
+
+// for _, m := range t.Members {
+// 
+// 	if !m.Array {
+//		continue
+// 	}
+// 
+// 	typ := "<error>"
+//	copy := false
+// 	switch m.Type.(type) {
+// 	case *astgen.BoolType:
+//		typ = "bool"
+//		copy = true
+//	case *astgen.StructType:
+//		typ = "*AST" + m.Type.Common().Name
+//	case *astgen.LexicalType:
+//		typ = "string"
+//		copy = true
+//	case *astgen.OptionType:
+//		typ = "AST" + m.Type.Common().Name
+//	case *astgen.EnumType:
+//		typ = "AST" + m.Type.Common().Name
+//		copy = true
+//	default:
+//		print(m.Type.Common().Name)
+//		// Cause a panic with type info.
+//		_ = m.Type.(*astgen.StructType)
+//	}
+//
+
+func (node *AST/* t.Name */) Copy_/* m.Name */() (ret []/* typ*/) {
+	
+	ret = make([]/* typ */, len(ast._/* m.Name */))
+	
+	// if copy {
+	copy(ret, ast._/* m.Name */)
+	// } else {
+
+	for i := range ast._/* m.Name */ {
+		ret[i] = ast._/* m.Name */[i].Copy().(/* typ */)
+	}
+	
+	// }
+	
+	return
+}
+
+// }
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitGoEnum(t *astgen.EnumType) {
+type AST/* t.Name */ int
+const (
+	// for i, tok := range t.EnumTokens {
+	AST_/* tok.Name */ = AST_/* t.Name */(/* i */)
+	// }
+)
+// }

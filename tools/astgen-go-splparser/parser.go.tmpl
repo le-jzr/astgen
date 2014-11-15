@@ -137,8 +137,6 @@ func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */) {
 		panic("bad file")
 	}
 	
-	ret = make([]/* tn */)
-	
 	for p.Down(); !p.IsEnd(); p.Next() {
 		//	if m.Type.Kind() == "Lexical" {
 		ret = append(ret, p.String())

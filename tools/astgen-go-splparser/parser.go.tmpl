@@ -1,0 +1,155 @@
+//// This file was generated from goparser.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "fmt"
+// import "github.com/zarevucky/astgen"
+
+// func emitOptionType(t *astgen.OptionType) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	p.Down()
+	
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	
+	p.Next()
+	
+	if p.IsEnd() {
+		panic("bad file")
+	}
+	
+	switch tag {
+	// for _, tn := range t.ConcreteTypes() {
+	case "/* tn */":
+		ret = ParseAST/* tn */(p)
+	// }
+	default:
+		panic("missing case for " + tag)
+	}
+	
+	p.Next()
+	if !p.IsEnd() {
+		panic("bad file")
+	}
+	p.Up()
+	
+	return ret
+}
+// }
+
+// func emitEnumType(t *astgen.EnumType) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
+	if !p.IsString() {
+		panic("bad file")
+	}
+	
+	tag := p.String()
+	p.Next()
+	
+	switch tag {
+	// for _, tok := range t.EnumTokens {
+	case "/* tok.Name */":
+		return AST/* t.Name */_/* tok.Name */
+	// }
+	default:
+		panic("bad file")
+	}
+}
+// }
+
+// func goTypeName(t astgen.Type) string {
+//	switch t.(type) {
+//	case *astgen.StructType:
+//		return "*AST" + t.Common().Name
+//	case *astgen.LexicalType:
+//		return "string"
+//	case *astgen.BoolType:
+//		return "bool"
+//	default:
+//		return "AST" + t.Common().Name
+//	}
+// }
+
+// func emitStructType(t *astgen.StructType) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	p.Down()
+	
+	if p.IsEnd() {
+		p.Up()
+		return nil
+	}
+	
+	ret = new(AST/* t.Name */)
+
+	// for _, m := range t.Members {
+	
+	if p.IsEnd() {
+		panic("bad file")
+	}
+	
+	// 	if m.Array {
+	ret._/* m.Name */ = ParseAST/* t.Name */_/* m.Name */(p)
+	// 	} else if m.Type.Kind() == "Bool" {
+	ret._/* m.Name */ = p.IsString()
+	// 	} else if m.Type.Kind() == "Lexical" {
+	// 		if m.Nullable {
+	if p.IsString() {
+		s := p.String()
+		ret._/* m.Name */ = &s
+	}
+	//		} else {
+	ret._/* m.Name */ = p.String()
+	// 		}
+	// 	} else {
+	ret._/* m.Name */ = ParseAST/* m.Type.Common().Name */(p)
+	// 	}
+	
+	p.Next()
+	// }
+	
+	if !p.IsEnd() {
+		panic("bad file")
+	}
+	p.Up()
+	
+	return
+}
+
+// for _, m := range t.Members {
+// 	if !m.Array {
+//		continue
+//	}
+//
+//	tn := goTypeName(m.Type)
+//
+func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */) {
+	if !p.IsList() {
+		panic("bad file")
+	}
+	
+	ret = make([]/* tn */)
+	
+	for p.Down(); !p.IsEnd(); p.Next() {
+		//	if m.Type.Kind() == "Lexical" {
+		ret = append(ret, p.String())
+		//	} else {
+		ret = append(ret, ParseAST/* m.Type.Common().Name */(p)
+		//	}
+	}
+	
+	p.Up()
+	
+	return ret
+}
+// }
+// }

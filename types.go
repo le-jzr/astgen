@@ -139,8 +139,10 @@ func (t *OptionType) ConcreteTypes() []string {
 	opts := []*OptionType{t}
 	result := []string{}
 	
-	for _, tt := range opts {
+	for len(opts) > 0 {
+		tt := opts[0]
 		opts = opts[1:]
+		
 		for _, ttt := range tt.Options {
 			
 			if processed[ttt.Common().Name] {
@@ -155,41 +157,6 @@ func (t *OptionType) ConcreteTypes() []string {
 				result = append(result, ttt.Common().Name)
 			case *OptionType:
 				opts = append(opts, ttt.(*OptionType))
-			}
-		}
-	}
-
-	return result
-}
-
-func (def *LangDef) ConcreteTypes(opt string) []string {
-	processed := make(map[string]bool)
-	
-	opts := []string{opt}
-	result := []string{}
-
-	processed[opt] = true
-	
-	for len(opts) > 0 {
-		o := def.Types[opts[0]].(*OptionType)
-		opts = opts[1:]
-
-		for _, op := range o.Options {
-			if processed[op.Common().Name] {
-				continue
-			}
-			
-			processed[op.Common().Name] = true
-			
-			t := op
-			
-			switch t.(type) {
-			case *LexicalType, *EnumType, *BoolType:
-				panic("bad definition")
-			case *StructType:
-				result = append(result, t.Common().Name)
-			case *OptionType:
-				opts = append(opts, t.Common().Name)
 			}
 		}
 	}

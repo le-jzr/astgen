@@ -9,8 +9,8 @@ type Type interface {
 }
 
 type TypeBase struct {
-	Name      string
-	
+	Name string
+
 	processed bool
 }
 
@@ -44,9 +44,9 @@ type LexicalType struct {
 
 type OptionType struct {
 	TypeBase
-	
+
 	Options []Type
-} 
+}
 
 type EnumType struct {
 	TypeBase
@@ -55,27 +55,26 @@ type EnumType struct {
 }
 
 type EnumToken struct {
-	Name string
+	Name   string
 	String string
 }
 
 type StructType struct {
 	TypeBase
-	
+
 	Productions []Production
-	Members []StructMember
+	Members     []StructMember
 }
 
 type StructMember struct {
-	Name             string
-	Nullable         bool
-	Array            bool
-	ArrayTerminator  *Production
-	ArraySeparator   *Production
-	ArrayMinLength   int
-	Type             Type
+	Name            string
+	Nullable        bool
+	Array           bool
+	ArrayTerminator *Production
+	ArraySeparator  *Production
+	ArrayMinLength  int
+	Type            Type
 }
-
 
 type Production struct {
 	Tokens []Token
@@ -135,21 +134,21 @@ func (p *Production) MemberPos(name string) int {
 func (t *OptionType) ConcreteTypes() []string {
 	processed := make(map[string]bool)
 	processed[t.Name] = true
-	
+
 	opts := []*OptionType{t}
 	result := []string{}
-	
+
 	for len(opts) > 0 {
 		tt := opts[0]
 		opts = opts[1:]
-		
+
 		for _, ttt := range tt.Options {
-			
+
 			if processed[ttt.Common().Name] {
 				continue
 			}
 			processed[ttt.Common().Name] = true
-			
+
 			switch ttt.(type) {
 			case *LexicalType, *EnumType, *BoolType:
 				panic("bad definition")
@@ -186,11 +185,6 @@ func (def *LangDef) Resolve() {
 		}
 	}
 }
-
-
-
-
-
 
 /*
 

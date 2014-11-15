@@ -1,8 +1,8 @@
 package astgen
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 )
 
 // TODO: Part of this file can be extracted into a miniparser package.
@@ -10,9 +10,8 @@ import (
 type parser struct {
 	file []byte
 	line int
-	def *LangDef
+	def  *LangDef
 }
-
 
 func Load(data []byte) (def *LangDef, e error) {
 	var p parser
@@ -26,11 +25,11 @@ func Load(data []byte) (def *LangDef, e error) {
 			e = fmt.Errorf("Error on line %d: %s\nNext 20 bytes: %s\n", p.line, err, string(p.file[:20]))
 		}
 	}()
-	
+
 	p.def = new(LangDef)
 	p.def.Types = make(map[string]Type)
 	p.def.Types["bool"] = new(BoolType)
-	
+
 	for !p.finished() {
 		t := p.parse_type()
 		if t == nil {
@@ -38,9 +37,9 @@ func Load(data []byte) (def *LangDef, e error) {
 		}
 		p.def.Types[t.Common().Name] = t
 	}
-	
+
 	p.def.Resolve()
-	
+
 	return p.def, e
 }
 
@@ -61,9 +60,9 @@ func (p *parser) skip_space() {
 		if is_nl(p.file[0]) {
 			p.line++
 		}
-		
+
 		p.file = p.file[1:]
-	}	
+	}
 }
 
 func (p *parser) accept_token(token string) bool {
@@ -233,7 +232,7 @@ func (p *parser) parse_member() (m StructMember) {
 	if p.accept_token("[]") {
 		m.Array = true
 	}
-	
+
 	m.Type = new(UnresolvedType)
 	m.Type.Common().Name = p.consume_token()
 	return
@@ -278,16 +277,16 @@ func (p *parser) parse_struct_type2(name string) *StructType {
 func (p *parser) parse_enum_type(name string) *EnumType {
 	typ := new(EnumType)
 	typ.Name = name
-	
+
 	p.match_token("enum")
 	p.match_token("{")
-	
+
 	for !p.accept_token("}") {
 		token_name := p.consume_token()
 		token_string := p.consume_token()
 		typ.EnumTokens = append(typ.EnumTokens, EnumToken{token_name, token_string})
 	}
-	
+
 	return typ
 }
 
@@ -302,7 +301,7 @@ func (p *parser) parse_type() Type {
 	if !p.accept_token("=") {
 		return &LexicalType{TypeBase{name, false}}
 	}
-	
+
 	if p.current_token() == "enum" {
 		return p.parse_enum_type(name)
 	}
@@ -313,13 +312,13 @@ func (p *parser) parse_type() Type {
 
 	typ := new(OptionType)
 	typ.Name = name
-	
+
 	for {
 		t := new(UnresolvedType)
 		t.Name = p.consume_token()
-		
+
 		typ.Options = append(typ.Options, t)
-		
+
 		if !p.accept_token("|") {
 			break
 		}

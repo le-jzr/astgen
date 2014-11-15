@@ -50,7 +50,7 @@ _/* memb.Name */ /* gotype(&memb) */ //
 func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	
 	if node == nil {
-		nullptr = (*AST/* t.Name */)nil
+		nullptr := (*AST/* t.Name */)(nil)
 		return nullptr
 	}
 	

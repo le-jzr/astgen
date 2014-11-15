@@ -39,7 +39,7 @@ fmt.Print("_")
 fmt.Printf("%v",  memb.Name )
 fmt.Print(" ")
 fmt.Printf("%v",  gotype(&memb) )
-fmt.Print("\n")
+
 }
 fmt.Print(") *AST")
 fmt.Printf("%v",  t.Name )

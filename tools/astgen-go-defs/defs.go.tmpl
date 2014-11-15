@@ -60,7 +60,7 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 
 	// if m.Array {
 	__retval._/* m.Name */ = node.Copy_/* m.Name */()
-	// }
+	// } else {
 
 	// switch m.Type.(type) {
 	// case *astgen.BoolType, *astgen.EnumType:
@@ -85,7 +85,7 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	__retval._/* m.Name */ = node._/* m.Name */.Copy().(/* typ */)
 
 	// }
-
+	// }
 	// }
 	
 	return __retval

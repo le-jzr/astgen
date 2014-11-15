@@ -79,7 +79,7 @@ fmt.Printf("%v",  m.Name )
 fmt.Print(" = node.Copy_")
 fmt.Printf("%v",  m.Name )
 fmt.Print("()\n")
-}
+} else {
 switch m.Type.(type) {
 case *astgen.BoolType, *astgen.EnumType:
 fmt.Print("\t__retval._")
@@ -119,6 +119,7 @@ fmt.Printf("%v",  m.Name )
 fmt.Print(".Copy().(")
 fmt.Printf("%v",  typ )
 fmt.Print(")\n")
+}
 }
 }
 fmt.Print("\t\n")

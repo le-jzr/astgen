@@ -7,21 +7,19 @@
 // func emitOptionType(t *astgen.OptionType) {
 func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 	if !p.IsList() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
 	}
 	
 	p.Down()
 	
 	if !p.IsString() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
 	}
 	
 	tag := p.String()
 	
-	p.Next()
-	
 	if p.IsEnd() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
 	}
 	
 	switch tag {
@@ -30,13 +28,13 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 		ret = ParseAST/* tn */(p)
 	// }
 	default:
-		panic("missing case for " + tag)
+		log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", tag, p.Line(), p.Column())
 	}
 	
-	p.Next()
 	if !p.IsEnd() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
 	}
+	
 	p.Up()
 	
 	return ret
@@ -46,11 +44,10 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 // func emitEnumType(t *astgen.EnumType) {
 func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 	if !p.IsString() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
 	}
 	
 	tag := p.String()
-	p.Next()
 	
 	switch tag {
 	// for _, tok := range t.EnumTokens {
@@ -58,7 +55,7 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 		return AST/* t.Name */_/* tok.Name */
 	// }
 	default:
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
 	}
 }
 // }
@@ -79,7 +76,7 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 // func emitStructType(t *astgen.StructType) {
 func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 	if !p.IsList() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
 	}
 	
 	p.Down()
@@ -94,18 +91,21 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 	// for _, m := range t.Members {
 	
 	if p.IsEnd() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
 	}
 	
 	// 	if m.Array {
 	ret._/* m.Name */ = ParseAST/* t.Name */_/* m.Name */(p)
 	// 	} else if m.Type.Kind() == "Bool" {
 	ret._/* m.Name */ = p.IsString()
+	p.Skip()
 	// 	} else if m.Type.Kind() == "Lexical" {
 	// 		if m.Nullable {
 	if p.IsString() {
 		s := p.String()
 		ret._/* m.Name */ = &s
+	} else {
+		p.Skip()
 	}
 	//		} else {
 	ret._/* m.Name */ = p.String()
@@ -114,11 +114,10 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 	ret._/* m.Name */ = ParseAST/* m.Type.Common().Name */(p)
 	// 	}
 	
-	p.Next()
 	// }
 	
 	if !p.IsEnd() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
 	}
 	p.Up()
 	
@@ -134,10 +133,10 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 //
 func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */) {
 	if !p.IsList() {
-		panic("bad file")
+		log.Fatalf("ParseAST/* t.Name */_/* m.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
 	}
 	
-	for p.Down(); !p.IsEnd(); p.Next() {
+	for p.Down(); !p.IsEnd(); {
 		//	if m.Type.Kind() == "Lexical" {
 		ret = append(ret, p.String())
 		//	} else {

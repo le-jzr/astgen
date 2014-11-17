@@ -174,6 +174,15 @@ func (def *LangDef) Resolve() {
 				}
 				tt.Members[i].Type = tttt
 			}
+			
+			// Also check productions.
+			for _, p := range tt.Productions {
+				for _, tok := range p.Tokens {
+					if tok.Token == "" && tt.MemberByName(tok.VarRef) == nil {
+						panic("Invalid variable reference '" + tok.VarRef + "'")
+					}
+				} 
+			}
 		case *OptionType:
 			for i, ttt := range tt.Options {
 				tttt := def.Types[ttt.Common().Name]
@@ -237,15 +246,6 @@ func token_symbol(token string) string {
 	}
 
 	return ret
-}
-
-
-
-
-func ResetProcessed() {
-	for k := range types {
-		types[k].ResetProcessed()
-	}
 }
 
 */

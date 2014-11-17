@@ -50,8 +50,7 @@ _/* memb.Name */ /* gotype(&memb) */ //
 func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	
 	if node == nil {
-		nullptr := (*AST/* t.Name */)(nil)
-		return nullptr
+		return nil
 	}
 	
 	__retval := new(AST/* t.Name */)
@@ -82,8 +81,12 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	//	case *astgen.OptionType:
 	//		typ = "AST" + m.Type.Common().Name
 	//	}
-	__retval._/* m.Name */ = node._/* m.Name */.Copy().(/* typ */)
-
+	if node._/* m.Name */ != nil {
+		cp := node._/* m.Name */.Copy()
+		if cp != nil {
+			__retval._/* m.Name */ = cp.(/* typ */)
+		}
+	}
 	// }
 	// }
 	// }
@@ -129,7 +132,14 @@ func (node *AST/* t.Name */) Copy_/* m.Name */() (ret []/* typ*/) {
 	// } else {
 
 	for i := range node._/* m.Name */ {
-		ret[i] = node._/* m.Name */[i].Copy().(/* typ */)
+		if node._/* m.Name */[i] == nil {
+			continue
+		}
+		cp := node._/* m.Name */[i].Copy()
+		if cp == nil {
+			continue
+		}
+		ret[i] = cp.(/* typ */)
 	}
 	
 	// }

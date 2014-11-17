@@ -112,13 +112,19 @@ case *astgen.OptionType, *astgen.StructType:
 	case *astgen.OptionType:
 		typ = "AST" + m.Type.Common().Name
 	}
-fmt.Print("\tc := node._")
+fmt.Print("\t")
+fmt.Printf("%v",  m.Name )
+fmt.Print("_copy := node._")
 fmt.Printf("%v",  m.Name )
 fmt.Print(".Copy()\n")
-fmt.Print("\tif c != nil {\n")
+fmt.Print("\tif ")
+fmt.Printf("%v",  m.Name )
+fmt.Print("_copy != nil {\n")
 fmt.Print("\t\t__retval._")
 fmt.Printf("%v",  m.Name )
-fmt.Print(" = c.(")
+fmt.Print(" = ")
+fmt.Printf("%v",  m.Name )
+fmt.Print("_copy.(")
 fmt.Printf("%v",  typ )
 fmt.Print(")\n")
 fmt.Print("\t}\n")

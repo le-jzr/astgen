@@ -112,13 +112,17 @@ case *astgen.OptionType, *astgen.StructType:
 	case *astgen.OptionType:
 		typ = "AST" + m.Type.Common().Name
 	}
-fmt.Print("\t__retval._")
+fmt.Print("\tc := node._")
 fmt.Printf("%v",  m.Name )
-fmt.Print(" = node._")
+fmt.Print(".Copy()\n")
+fmt.Print("\tif c != nil {\n")
+fmt.Print("\t\t__retval._")
 fmt.Printf("%v",  m.Name )
-fmt.Print(".Copy().(")
+fmt.Print(" = c.(")
 fmt.Printf("%v",  typ )
 fmt.Print(")\n")
+fmt.Print("\t}\n")
+fmt.Print("\t\n")
 }
 }
 }
@@ -175,11 +179,14 @@ fmt.Print(")\n")
 fmt.Print("\tfor i := range node._")
 fmt.Printf("%v",  m.Name )
 fmt.Print(" {\n")
-fmt.Print("\t\tret[i] = node._")
+fmt.Print("\t\tc := node._")
 fmt.Printf("%v",  m.Name )
-fmt.Print("[i].Copy().(")
+fmt.Print("[i].Copy()\n")
+fmt.Print("\t\tif c != nil {\n")
+fmt.Print("\t\t\tret[i] = c.(")
 fmt.Printf("%v",  typ )
 fmt.Print(")\n")
+fmt.Print("\t\t}\n")
 fmt.Print("\t}\n")
 fmt.Print("\t\n")
 }

@@ -82,8 +82,11 @@ func (node *AST/* t.Name */) Copy() ASTBaseInterface {
 	//	case *astgen.OptionType:
 	//		typ = "AST" + m.Type.Common().Name
 	//	}
-	__retval._/* m.Name */ = node._/* m.Name */.Copy().(/* typ */)
-
+	c := node._/* m.Name */.Copy()
+	if c != nil {
+		__retval._/* m.Name */ = c.(/* typ */)
+	}
+	
 	// }
 	// }
 	// }
@@ -129,7 +132,10 @@ func (node *AST/* t.Name */) Copy_/* m.Name */() (ret []/* typ*/) {
 	// } else {
 
 	for i := range node._/* m.Name */ {
-		ret[i] = node._/* m.Name */[i].Copy().(/* typ */)
+		c := node._/* m.Name */[i].Copy()
+		if c != nil {
+			ret[i] = c.(/* typ */)
+		}
 	}
 	
 	// }

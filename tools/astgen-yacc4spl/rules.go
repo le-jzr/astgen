@@ -24,7 +24,7 @@ func emitOption(t *astgen.OptionType) {
 		if opt {
 			fmt.Print("{ $$ = $1; }\n")
 		} else {
-			fmt.Print("{ $$ = SExpression(\"", tt.Common().Name, "\", $1, NULL); }\n")
+			fmt.Print("{ $$ = SExList(2, SExString(\"", tt.Common().Name, "\"), $1, NULL); }\n")
 		}
 	}
 	fmt.Print(";\n\n\n")

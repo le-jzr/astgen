@@ -27,7 +27,6 @@
 	
 	extern sexp_t SExString(const char *str);
 	extern sexp_t SExList(int count, ...);
-	extern sexp_t SExpression(const char *head, ...) __attribute__((sentinel));
 	extern sexp_t SExPrepend(sexp_t, sexp_t);
 	extern sexp_t SExAppend(sexp_t, sexp_t);
 
@@ -49,13 +48,8 @@
 
 %%
 
-File:
-  GlobalList {}
-;
-
-GlobalList:
-                    { }
-| GlobalList Global { PrintSExpression(stdout, $2, 0); }
+Main:
+  File { PrintSExpression(stdout, $1, 0); }
 ;
 
 // }
@@ -96,36 +90,6 @@ sexp_t SExList(int count, ...) {
 		list[i] = va_arg(ap, sexp_t);
 	}
 	list[count] = NULL;
-	va_end(ap);
-	
-	/////* Create the structure. */
-	sexp_t ex = calloc(sizeof(struct sexp), 1);
-	ex->string = NULL;
-	ex->list = list;
-	
-	return ex;
-}
-
-sexp_t SExpression(const char *head, ...) {
-	va_list ap;
-	
-	/////* Count the arguments. */
-	va_start(ap, head);
-	int list_len = 1;
-	while (va_arg(ap, sexp_t) != NULL) {
-		list_len++;
-	}
-	va_end(ap);
-	
-	/////* Create the array. */
-	sexp_t *list = calloc(sizeof(sexp_t), list_len + 1);
-	
-	va_start(ap, head);
-	for (int i = 1; i < list_len; i++) {
-		list[i] = va_arg(ap, sexp_t);
-	}
-	list[0] = SExString(head);
-	list[list_len] = NULL;
 	va_end(ap);
 	
 	/////* Create the structure. */

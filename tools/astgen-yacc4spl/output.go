@@ -47,7 +47,7 @@ fmt.Print(";\n")
 func emitEpilogue() {
 fmt.Print("%%\n")
 fmt.Print("void yyerror(const char *s) {\n")
-fmt.Print("\tfprintf(stderr, \"%s\\n\", s);\n")
+fmt.Print("\tfprintf(stderr, \"[%d:%d--%d:%d] %s\\n\", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, s);\n")
 fmt.Print("}\n")
 fmt.Print("int main(void) {\n")
 fmt.Print("\tyydebug = 0;\n")

@@ -6,6 +6,9 @@
 
 // func emitPrologue() {
 
+%locations
+%pure_parser
+
 %{
 	#include <stdlib.h>
 	#include <stdio.h>
@@ -15,7 +18,7 @@
 	#include <assert.h>
 	
 	void yyerror(const char *s);
-	int yylex(void);
+	int yylex ( YYSTYPE * lvalp, YYLTYPE * llocp, yyscan_t scanner);
 %}
 
 %code requires {

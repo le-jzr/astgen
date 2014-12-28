@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 func emitPrologue() {
+fmt.Print("%locations\n")
+fmt.Print("%pure_parser\n")
 fmt.Print("%{\n")
 fmt.Print("\t#include <stdlib.h>\n")
 fmt.Print("\t#include <stdio.h>\n")
@@ -13,7 +15,7 @@ fmt.Print("\t#include <string.h>\n")
 fmt.Print("\t#include <assert.h>\n")
 fmt.Print("\t\n")
 fmt.Print("\tvoid yyerror(const char *s);\n")
-fmt.Print("\tint yylex(void);\n")
+fmt.Print("\tint yylex ( YYSTYPE * lvalp, YYLTYPE * llocp, yyscan_t scanner);\n")
 fmt.Print("%}\n")
 fmt.Print("%code requires {\n")
 fmt.Print("\t\n")

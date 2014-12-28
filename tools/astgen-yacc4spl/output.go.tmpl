@@ -7,7 +7,8 @@
 // func emitPrologue() {
 
 %locations
-%pure_parser
+%define api.pure full
+%param {yyscan_t scanner}
 
 %{
 	#include <stdlib.h>
@@ -16,9 +17,6 @@
 	#include <ctype.h>
 	#include <string.h>
 	#include <assert.h>
-	
-	void yyerror(const char *s);
-	int yylex ( YYSTYPE * lvalp, YYLTYPE * llocp, yyscan_t scanner);
 %}
 
 %code requires {
@@ -48,7 +46,11 @@
 	  int last_line;
 	  int last_column;
 	} YYLTYPE;
-	extern YYLTYPE yylloc;
+	#define YYLTYPE_IS_DECLARED 1
+	
+	typedef void* yyscan_t;
+	void yyerror (YYLTYPE *locp, yyscan_t scanner, char const *msg);
+	int yylex (YYSTYPE *lvalp, YYLTYPE *llocp, yyscan_t scanner);
 }
 
 %error-verbose
@@ -74,13 +76,20 @@ Main:
 
 %%
 
-void yyerror(const char *s) {
-	fprintf(stderr, "[%d:%d--%d:%d] %s\n", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, s);
+void yyerror(YYLTYPE *locp, yyscan_t scanner, const char *s) {
+	fprintf(stderr, "[%d:%d--%d:%d] %s\n", locp->first_line, locp->first_column, locp->last_line, locp->last_column, s);
 }
+
+extern void yylex_init(yyscan_t *);
+extern void yylex_destroy(yyscan_t);
 
 int main(void) {
 	yydebug = 0;
-	return yyparse();
+	yyscan_t scanner;
+	yylex_init(&scanner);
+	int rc = yylex(scanner);
+	yylex_destroy(scanner);
+	return rc;
 }
 
 

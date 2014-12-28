@@ -87,7 +87,7 @@ int main(void) {
 	yydebug = 0;
 	yyscan_t scanner;
 	yylex_init(&scanner);
-	int rc = yylex(scanner);
+	int rc = yyparse(scanner);
 	yylex_destroy(scanner);
 	return rc;
 }

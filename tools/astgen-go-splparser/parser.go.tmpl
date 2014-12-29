@@ -5,51 +5,61 @@
 // import "github.com/zarevucky/astgen"
 
 // func emitOptionType(t *astgen.OptionType) {
-func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */, err error) {
 	if !p.IsList() {
-		log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	p.Down()
 	
 	if p.IsEnd() {
 		p.Up()
-		return nil
+		return nil, nil
 	}
 	
 	if !p.IsString() {
-		log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	tag := p.String()
 	
 	if p.IsEnd() {
-		log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	switch tag {
 	// for _, tn := range t.ConcreteTypes() {
 	case "/* tn */":
-		ret = ParseAST/* tn */(p)
+		ret, err = ParseAST/* tn */(p)
 	// }
 	default:
-		log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", tag, p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", tag, p.Line(), p.Column())
+		return
+	}
+	
+	if err != nil {
+		return
 	}
 	
 	if !p.IsEnd() {
-		log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	p.Up()
 	
-	return ret
+	return ret, nil
 }
 // }
 
 // func emitEnumType(t *astgen.EnumType) {
-func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */, err error) {
 	if !p.IsString() {
-		log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	tag := p.String()
@@ -60,7 +70,8 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 		return AST/* t.Name */_/* tok.Name */
 	// }
 	default:
-		log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
+		return
 	}
 }
 // }
@@ -79,9 +90,10 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */) {
 // }
 
 // func emitStructType(t *astgen.StructType) {
-func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
+func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */, err error) {
 	if !p.IsList() {
-		log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	p.Down()
@@ -96,11 +108,15 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 	// for _, m := range t.Members {
 	
 	if p.IsEnd() {
-		log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	// 	if m.Array {
-	ret._/* m.Name */ = ParseAST/* t.Name */_/* m.Name */(p)
+	ret._/* m.Name */, err = ParseAST/* t.Name */_/* m.Name */(p)
+	if err != nil {
+		return
+	}
 	// 	} else if m.Type.Kind() == "Bool" {
 	ret._/* m.Name */ = p.IsString()
 	p.Skip()
@@ -116,13 +132,17 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 	ret._/* m.Name */ = p.String()
 	// 		}
 	// 	} else {
-	ret._/* m.Name */ = ParseAST/* m.Type.Common().Name */(p)
+	ret._/* m.Name */, err = ParseAST/* m.Type.Common().Name */(p)
+	if err != nil {
+		return
+	}
 	// 	}
 	
 	// }
 	
 	if !p.IsEnd() {
-		log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	p.Up()
 	
@@ -136,16 +156,21 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */) {
 //
 //	tn := goTypeName(m.Type)
 //
-func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */) {
+func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */, err error) {
 	if !p.IsList() {
-		log.Fatalf("ParseAST/* t.Name */_/* m.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		err = fmt.Errorf("ParseAST/* t.Name */_/* m.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+		return
 	}
 	
 	for p.Down(); !p.IsEnd(); {
 		//	if m.Type.Kind() == "Lexical" {
 		ret = append(ret, p.String())
 		//	} else {
-		ret = append(ret, ParseAST/* m.Type.Common().Name */(p))
+		x, e := ParseAST/* m.Type.Common().Name */(p)
+		if e != nil {
+			return nil, e
+		}
+		ret = append(ret, x)
 		//	}
 	}
 	

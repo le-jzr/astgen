@@ -29,7 +29,7 @@ func new_AST/* t.Name */(//
 //	if i != 0 {
 , //
 //	}
-_/* memb.Name */ /* zeframType(&memb, true) */ //
+_/* memb.Name */: /* zeframType(&memb, true) */ //
 // }
 ) (ret: own *AST/* t.Name */)
 {
@@ -47,8 +47,8 @@ _/* memb.Name */ /* zeframType(&memb, true) */ //
 func (node: *AST/* t.Name */) copy() (ret: own *AST/* t.Name */)
 {
 	
-	if node == nil {
-		return nil
+	if node == null {
+		return null
 	}
 	
 	ret = new(AST/* t.Name */)
@@ -72,7 +72,7 @@ func (node: *AST/* t.Name */) copy() (ret: own *AST/* t.Name */)
 	// }
 
 	// case *astgen.OptionType, *astgen.StructType:
-	if node._/* m.Name */ != nil {
+	if node._/* m.Name */ != null {
 		ret._/* m.Name */ = node._/* m.Name */.copy()
 	}
 	// }
@@ -121,12 +121,16 @@ func (node: *AST/* t.Name */) copy_/* m.Name */() (ret: own *[]/* typ */)
 	ret = new[len(node._/* m.Name */)](/* typ */)
 	
 	// if copy {
-	copy(ret, node._/* m.Name */)
+	var i = 0
+	while i < len(ret) {
+		ret[i] = node._/* m.Name */[i]
+		i++
+	}
 	// } else {
 
 	var i = 0
 	while i < len(node._/* m.Name */) {
-		if node._/* m.Name */[i] != nil {
+		if node._/* m.Name */[i] != null {
 			ret[i] = node._/* m.Name */[i].copy()
 		}
 		i++

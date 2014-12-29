@@ -1,0 +1,81 @@
+//// This file was generated from goparser.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "fmt"
+// import "github.com/zarevucky/astgen"
+
+
+// func emitEnumType(t *astgen.EnumType) {
+func (n: AST/* t.Name */) print()
+{
+	switch n.value
+	// for i, tok := range t.EnumTokens {
+	case /*i*/ {
+		env.print("/* tok.Name */")
+	}
+	// }
+	default {
+		fail BUG
+	};;
+}
+// }
+
+// func emitStructType(t *astgen.StructType) {
+func (n: *AST/* t.Name */) print()
+{
+	env.print("/* t.Name */ {\n")
+
+	// for _, m := range t.Members {
+	
+	env.print("/* m.Name */ = ")
+	
+	// 	if m.Array {
+	n.print_/* m.Name */()
+	// 	} else if m.Type.Kind() == "Bool" {
+	if n._/* m.Name */ {
+		env.print("true")
+	} else {
+		env.print("false")
+	}
+	// 	} else if m.Type.Kind() == "Lexical" {
+	// 		if m.Nullable {
+	if n._/* m.Name */ == null {
+		env.print("null")
+	} else {
+		env.print(*n._/* m.Name */)
+	}
+	//		} else {
+	env.print(n._/* m.Name */)
+	// 		}
+	// 	} else {
+	n._/* m.Name */.print()
+	// 	}
+	
+	env.print(",\n")
+	
+	// }
+	
+	env.print("}")
+}
+
+// for _, m := range t.Members {
+// 	if !m.Array {
+//		continue
+//	}
+//
+func  (n: *AST/* t.Name */) print_/* m.Name */()
+{
+	var i = 0
+	
+	while i < len(n._/* m.Name */) {
+		//if m.Type.Kind() == "Bool" || m.Type.Kind() == "Lexical" {
+		env.print(n._/* m.Name */[i])
+		//} else {
+		n._/* m.Name */[i].print()
+		//}
+		
+		i++
+	}
+}
+// }
+// }

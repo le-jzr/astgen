@@ -1,0 +1,181 @@
+//// This file was generated from goparser.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "fmt"
+// import "github.com/zarevucky/astgen"
+
+// func emitPrologue() {
+func box_string(s: string) (ret: own *string)
+{
+	ret = new(string)
+	*ret = s
+}
+// }
+
+// func emitOptionType(t *astgen.OptionType) {
+func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *AST/* t.Name */)
+{
+	if !p.is_list() {
+		fail BAD_INPUT
+		//// log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	}
+	
+	p.down()
+	
+	if p.is_end() {
+		p.up()
+		return null
+	}
+	
+	if !p.is_string() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+	}
+	
+	var tag = p.string()
+	
+	if p.is_end() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+	}
+	
+	switch tag
+	// for _, tn := range t.ConcreteTypes() {
+	case "/* tn */" {
+		ret = parse_AST/* tn */(p, r)
+	}
+	// }
+	default {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", tag, p.Line(), p.Column())
+	};;
+	
+	if !p.is_end() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+	}
+	
+	p.up()
+	
+	return
+}
+// }
+
+// func emitEnumType(t *astgen.EnumType) {
+func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: AST/* t.Name */)
+{
+	if !p.is_string() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+	}
+	
+	var tag = p.string()
+	
+	switch tag
+	// for i, tok := range t.EnumTokens {
+	case "/* tok.Name */" {
+		ret.value = /* i */
+		return
+	}
+	// }
+	default {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
+	};;
+}
+// }
+
+// func emitStructType(t *astgen.StructType) {
+func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: *AST/* t.Name */)
+{
+	if !p.IsList() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	}
+	
+	p.down()
+	
+	if p.is_end() {
+		p.up()
+		return null
+	}
+	
+	ret = new(AST/* t.Name */)
+
+	// for _, m := range t.Members {
+	
+	if p.IsEnd() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+	}
+	
+	// 	if m.Array {
+	ret._/* m.Name */ = parse_AST/* t.Name */_/* m.Name */(p, r)
+	// 	} else if m.Type.Kind() == "Bool" {
+	ret._/* m.Name */ = p.is_string()
+	p.skip()
+	// 	} else if m.Type.Kind() == "Lexical" {
+	// 		if m.Nullable {
+	if p.is_string() {
+		ret._/* m.Name */ = box_string(p.string())
+	} else {
+		p.skip()
+	}
+	//		} else {
+	ret._/* m.Name */ = p.string()
+	// 		}
+	// 	} else {
+	ret._/* m.Name */ = parse_AST/* m.Type.Common().Name */(p, r)
+	// 	}
+	
+	// }
+	
+	if !p.is_end() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+	}
+	p.up()
+	
+	return
+}
+
+// for _, m := range t.Members {
+// 	if !m.Array {
+//		continue
+//	}
+//
+//	tn := zeframTypeName(m.Type)
+//
+func parse_AST/* t.Name */_/* m.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *[]/* tn */)
+{
+	if !p.is_list() {
+		fail BAD_INPUT
+		////log.Fatalf("ParseAST/* t.Name */_/* m.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	}
+	
+	var count = 0
+	ret = new[1](/* tn */)
+	
+	p.down()
+	
+	while !p.is_end() {
+		if count == len(ret) {
+			var new_size = 2*len(ret)
+			ret = resize(@ret, new_size)
+		}
+	
+		//	if m.Type.Kind() == "Lexical" {
+		ret[count] = p.string()
+		//	} else {
+		ret[count] = parse_AST/* m.Type.Common().Name */(p, r)
+		//	}
+		
+		count++
+	}
+	
+	p.up()
+	
+	return resize(@ret, count)
+}
+// }
+// }

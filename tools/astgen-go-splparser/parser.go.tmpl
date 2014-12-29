@@ -67,7 +67,7 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret AST/* t.Name */, err error) {
 	switch tag {
 	// for _, tok := range t.EnumTokens {
 	case "/* tok.Name */":
-		return AST/* t.Name */_/* tok.Name */
+		return AST/* t.Name */_/* tok.Name */, nil
 	// }
 	default:
 		err = fmt.Errorf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
@@ -100,7 +100,7 @@ func ParseAST/* t.Name */(p *spl.SeqParser) (ret *AST/* t.Name */, err error) {
 	
 	if p.IsEnd() {
 		p.Up()
-		return nil
+		return nil, nil
 	}
 	
 	ret = new(AST/* t.Name */)
@@ -176,7 +176,7 @@ func ParseAST/* t.Name */_/* m.Name */(p *spl.SeqParser) (ret []/* tn */, err er
 	
 	p.Up()
 	
-	return ret
+	return
 }
 // }
 // }

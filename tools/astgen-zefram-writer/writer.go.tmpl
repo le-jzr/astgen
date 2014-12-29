@@ -48,7 +48,11 @@ func (n: *AST/* t.Name */) print()
 	env.print(n._/* m.Name */)
 	// 		}
 	// 	} else {
-	n._/* m.Name */.print()
+	if n._/* m.Name */ == null {
+		env.print("null")
+	} else {
+		n._/* m.Name */.print()
+	}
 	// 	}
 	
 	env.print(",\n")
@@ -71,7 +75,11 @@ func  (n: *AST/* t.Name */) print_/* m.Name */()
 		//if m.Type.Kind() == "Bool" || m.Type.Kind() == "Lexical" {
 		env.print(n._/* m.Name */[i])
 		//} else {
-		n._/* m.Name */[i].print()
+		if n._/* m.Name */[i] == null {
+			env.print("null")
+		} else {
+			n._/* m.Name */[i].print()
+		}
 		//}
 		
 		i++

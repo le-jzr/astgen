@@ -15,28 +15,28 @@ func box_string(s: string) (ret: own *string)
 // func emitOptionType(t *astgen.OptionType) {
 func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *AST/* t.Name */)
 {
-	if !p.is_list() {
-		fail BAD_INPUT
-		//// log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	if !p.is_list(r) {
+		env.print("parse_AST/* t.Name */: Expected list start at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected list start."
 	}
 	
-	p.down()
+	p.down(r)
 	
-	if p.is_end() {
-		p.up()
+	if p.is_end(r) {
+		p.up(r)
 		return null
 	}
 	
-	if !p.is_string() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+	if !p.is_string(r) {
+		env.print("parse_AST/* t.Name */: Expected string at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected string."
 	}
 	
-	var tag = p.string()
+	var tag = p.string(r)
 	
-	if p.is_end() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+	if p.is_end(r) {
+		env.print("parse_AST/* t.Name */: Unexpected list end at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Unexpected list end."
 	}
 	
 	switch tag
@@ -46,16 +46,16 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *AST/* t
 	}
 	// }
 	default {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", tag, p.Line(), p.Column())
+		env.print("parse_AST/* t.Name */: Unknown tag '", tag, "' before ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Unknown tag."
 	};;
 	
-	if !p.is_end() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+	if !p.is_end(r) {
+		env.print("parse_AST/* t.Name */: Expected list end at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected list end."
 	}
 	
-	p.up()
+	p.up(r)
 	
 	return
 }
@@ -64,12 +64,12 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *AST/* t
 // func emitEnumType(t *astgen.EnumType) {
 func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: AST/* t.Name */)
 {
-	if !p.is_string() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Expected string at %d:%d.", p.Line(), p.Column())
+	if !p.is_string(r) {
+		env.print("parse_AST/* t.Name */: Expected string at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected string."
 	}
 	
-	var tag = p.string()
+	var tag = p.string(r)
 	
 	switch tag
 	// for i, tok := range t.EnumTokens {
@@ -79,8 +79,8 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: AST/* t.Name
 	}
 	// }
 	default {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Unknown tag %s before %d:%d.", p.Line(), p.Column())
+		env.print("parse_AST/* t.Name */: Unknown tag '", tag, "' before ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Unknown tag."
 	};;
 }
 // }
@@ -88,15 +88,15 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: AST/* t.Name
 // func emitStructType(t *astgen.StructType) {
 func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: *AST/* t.Name */)
 {
-	if !p.IsList() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	if !p.is_list(r) {
+		env.print("parse_AST/* t.Name */: Expected list start at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected list start."
 	}
 	
-	p.down()
+	p.down(r)
 	
-	if p.is_end() {
-		p.up()
+	if p.is_end(r) {
+		p.up(r)
 		return null
 	}
 	
@@ -104,25 +104,25 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: *AST/* t.Nam
 
 	// for _, m := range t.Members {
 	
-	if p.IsEnd() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Unexpected list end at %d:%d.", p.Line(), p.Column())
+	if p.is_end(r) {
+		env.print("parse_AST/* t.Name */: Unexpected list end at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Unexpected list end."
 	}
 	
 	// 	if m.Array {
 	ret._/* m.Name */ = parse_AST/* t.Name */_/* m.Name */(p, r)
 	// 	} else if m.Type.Kind() == "Bool" {
-	ret._/* m.Name */ = p.is_string()
-	p.skip()
+	ret._/* m.Name */ = p.is_string(r)
+	p.skip(r)
 	// 	} else if m.Type.Kind() == "Lexical" {
 	// 		if m.Nullable {
-	if p.is_string() {
-		ret._/* m.Name */ = box_string(p.string())
+	if p.is_string(r) {
+		ret._/* m.Name */ = box_string(p.string(r))
 	} else {
-		p.skip()
+		p.skip(r)
 	}
 	//		} else {
-	ret._/* m.Name */ = p.string()
+	ret._/* m.Name */ = p.string(r)
 	// 		}
 	// 	} else {
 	ret._/* m.Name */ = parse_AST/* m.Type.Common().Name */(p, r)
@@ -130,11 +130,11 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: *AST/* t.Nam
 	
 	// }
 	
-	if !p.is_end() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */: Expected list end at %d:%d.", p.Line(), p.Column())
+	if !p.is_end(r) {
+		env.print("parse_AST/* t.Name */: Expected list end at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */: Expected list end."
 	}
-	p.up()
+	p.up(r)
 	
 	return
 }
@@ -148,24 +148,24 @@ func parse_AST/* t.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: *AST/* t.Nam
 //
 func parse_AST/* t.Name */_/* m.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret: own *[]/* tn */)
 {
-	if !p.is_list() {
-		fail BAD_INPUT
-		////log.Fatalf("ParseAST/* t.Name */_/* m.Name */: Expected list start at %d:%d.", p.Line(), p.Column())
+	if !p.is_list(r) {
+		env.print("parse_AST/* t.Name */_/* m.Name */: Expected list start at ", p.line(), ":", p.column(), ".\n")
+		fail BAD_INPUT, "parse_AST/* t.Name */_/* m.Name */: Expected list start."
 	}
 	
 	var count = 0
 	ret = new[1](/* tn */)
 	
-	p.down()
+	p.down(r)
 	
-	while !p.is_end() {
+	while !p.is_end(r) {
 		if count == len(ret) {
 			var new_size = 2*len(ret)
 			ret = resize(@ret, new_size)
 		}
 	
 		//	if m.Type.Kind() == "Lexical" {
-		ret[count] = p.string()
+		ret[count] = p.string(r)
 		//	} else {
 		ret[count] = parse_AST/* m.Type.Common().Name */(p, r)
 		//	}
@@ -173,7 +173,7 @@ func parse_AST/* t.Name */_/* m.Name */(p: *spl.SeqParser, r: *spl.Reader) (ret:
 		count++
 	}
 	
-	p.up()
+	p.up(r)
 	
 	return resize(@ret, count)
 }

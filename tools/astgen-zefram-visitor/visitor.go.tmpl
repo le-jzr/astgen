@@ -1,0 +1,82 @@
+//// This file was generated from visitor.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "github.com/zarevucky/astgen"
+// import "fmt"
+// import "strings"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitOptionVisitor(langdef *astgen.LangDef, t *astgen.OptionType) {
+
+func visit_/* strings.ToLower(t.Name) */(v: *Visitor, node: *AST/* t.Name */)
+{
+	if node == null {
+		return
+	}
+	
+	type switch node
+	// for _, tt := range t.ConcreteTypes() {
+	//	ttt := langdef.Types[tt].(*astgen.StructType)
+	case *AST/* ttt.Name */ {
+		visit_/*strings.ToLower(ttt.Name)*/(v, node)
+	}
+	// }
+	default {
+		fail BUG, "Missing switch case."
+	};;
+}
+
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitStructVisitor(t *astgen.StructType) {
+
+func visit_/* strings.ToLower(t.Name) */(v: *Visitor, node: *AST/* t.Name */)
+{
+	if node == null {
+		return
+	}
+	
+	if !v.preprocess_/* strings.ToLower(t.Name) */(node) {
+		return
+	}
+	
+	var i: int
+	
+	// for _, m := range t.Members {
+		// switch m.Type.(type) {
+		// case *astgen.StructType, *astgen.OptionType:
+		// 	// process
+		// default:
+		//	// skip
+		//	continue
+		// }
+		//
+		// if m.Array {
+	i = 0
+	while i < len(node._/*m.Name*/) {
+		visit_/* strings.ToLower(m.Type.Common().Name) */(v, node._/*m.Name*/[i])
+		i++
+	}
+		// } else {
+	visit_/*strings.ToLower(m.Type.Common().Name)*/(v, node._/*m.Name*/)
+		// }
+	// }
+	
+	v.postprocess_/* strings.ToLower(t.Name) */(node)
+}
+
+func (v: *NullVisitor) preprocess_/* strings.ToLower(t.Name) */(node: *AST/*t.Name*/) (enter: bool)
+{
+	unused(node)
+	return true
+}
+
+func (v: *NullVisitor) postprocess_/* strings.ToLower(t.Name) */(node: *AST/*t.Name*/)
+{
+	unused(node)
+}
+
+// }

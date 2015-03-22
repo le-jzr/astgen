@@ -1,0 +1,174 @@
+//// This file was generated from defs.go.tmpl, DO NOT MODIFY.
+//
+// package main
+// import "github.com/zarevucky/astgen"
+// import "fmt"
+// import "strings"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitCppOption(t *astgen.OptionType) {
+
+class /* t.Name */: public virtual NodeBase/* interfaceList(t) */ {
+public:
+	virtual /* t.Name */ *clone() const override = 0;
+};
+
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitCppStructInterface(t *astgen.StructType) {
+
+class /* t.Name */: public virtual NodeBase/* interfaceList(t) */ {
+private:
+	static std::unique_ptr</* t.Name */>& _prototype() {
+		static std::unique_ptr</* t.Name */> proto(nullptr);
+		return proto;
+	}
+	
+	/* t.Name */() {}
+	/* t.Name */(const /* t.Name */& node);
+	
+	
+public:
+	// for _, memb := range t.Members {
+	/* cppType(&memb, true) */ _/* memb.Name */;
+	// if memb.Array {
+	/* cppType(&memb, true) */ copy_/* memb.Name */() const;
+	// }
+	// }
+	
+	virtual /* t.Name */* clone() const override;
+	virtual void visit(Visitor& visitor) override;
+	
+	static void register_prototype(const /* t.Name */& prototype) {
+		_prototype().reset(prototype.clone());
+	}
+	
+	static /* t.Name */* make() {
+		if (_prototype()) {
+			return _prototype()->clone();
+		}
+		return new /* t.Name */();
+	}
+};
+
+// }
+
+// func emitCppStructImpl(t *astgen.StructType) {
+
+/* t.Name */::/* t.Name */(const /* t.Name */& node)
+{
+	// for _, m := range t.Members {
+	
+	// if m.Array {
+	this->_/* m.Name */ = node.copy_/* m.Name */();
+	// } else {
+	
+	// switch m.Type.(type) {
+	// case *astgen.BoolType, *astgen.EnumType:
+	this->_/* m.Name */ = node._/* m.Name */;
+	
+	// case *astgen.LexicalType: 
+	// if m.Nullable {
+	this->_/* m.Name */.reset(new std::string(*node._/* m.Name */));
+	// } else {
+	this->_/* m.Name */ = node._/* m.Name */;
+	// }
+	
+	// case *astgen.OptionType, *astgen.StructType:
+	if (node._/* m.Name */ != nullptr) {
+		this->_/* m.Name */.reset(node._/* m.Name */->clone());
+	}
+	// }
+	// }
+	// }
+}
+
+/* t.Name */ */* t.Name */::clone() const
+{
+	return new /* t.Name */(*this);
+}
+
+void /* t.Name */::visit(Visitor& visitor)
+{
+	visitor.visit_/* strings.ToLower(t.Name) */(*this);
+}
+
+// for _, m := range t.Members {
+// 
+// 	if !m.Array {
+//		continue
+// 	}
+// 
+// 	typ := cppType(&m, true)
+//
+
+/* typ */ /* t.Name */::copy_/* m.Name */() const
+{
+	/* typ */ result;
+	
+	for (auto&& it : _/* m.Name */) {
+	// if defaultCopy(&m) {
+		// if m.Nullable { 
+		result.push_back(std::unique_ptr</*coreType(&m)*/>(new /*coreType(&m)*/(*it)));
+		// } else {
+		result.push_back(it);
+		// }
+	// } else {
+		result.push_back(std::unique_ptr</*coreType(&m)*/>(it->clone()));
+	// }
+	}
+	
+	return std::move(result);
+}
+
+// }
+// }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// func emitCppEnum(t *astgen.EnumType) {
+enum class /* t.Name */ {
+	// for _, tok := range t.EnumTokens {
+	/* tok.Name */,
+	// }
+};
+// }
+
+
+// func emitVisitorImpl(t *astgen.StructType) {
+
+void Visitor::visit_/* strings.ToLower(t.Name) */(/* t.Name */& node)
+{
+	if (!preprocess_/* strings.ToLower(t.Name) */(node)) {
+		return;
+	}
+	
+	// for _, m := range t.Members {
+	// switch m.Type.(type) {
+	// case *astgen.StructType, *astgen.OptionType:
+	// 	// process
+	// default:
+	//	// skip
+	//	continue
+	// }
+	//
+	// if m.Array {
+	for (auto&& m : node._/*m.Name*/) {
+		m->visit(*this);
+	}
+	
+	// } else {
+	if (node._/*m.Name*/ != nullptr) {
+		node._/*m.Name*/->visit(*this);
+	}
+	
+	// }
+	// }
+	
+	postprocess_/* strings.ToLower(t.Name) */(node);
+}
+
+// }
